@@ -17,3 +17,9 @@ about:
 ---
 
 About this blog
+
+My name is Liz Rightmire
+
+I'm a computer science student at Middlebury College
+
+This blog holds the work I've done in CSCI0451: Machine Learning
