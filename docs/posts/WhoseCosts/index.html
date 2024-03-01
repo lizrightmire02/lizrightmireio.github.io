@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.549">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Liz Rightmire">
+<meta name="dcterms.date" content="2024-03-01">
+<meta name="description" content="Designing and Evaluating a Profit-Maximizing Loan Default Predictor Model">
+
+<title>Liz’s CSCI 0451 Blog - Whose Costs?</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>
+
+      .quarto-title-block .quarto-title-banner h1,
+      .quarto-title-block .quarto-title-banner h2,
+      .quarto-title-block .quarto-title-banner h3,
+      .quarto-title-block .quarto-title-banner h4,
+      .quarto-title-block .quarto-title-banner h5,
+      .quarto-title-block .quarto-title-banner h6
+      {
+        color: white;
+      }
+
+      .quarto-title-block .quarto-title-banner {
+        color: white;
+background-image: url(../../img/landscape.png);
+background-size: cover;
+      }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Liz’s CSCI 0451 Blog</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Whose Costs?</h1>
+                  <div>
+        <div class="description">
+          Designing and Evaluating a Profit-Maximizing Loan Default Predictor Model
+        </div>
+      </div>
+                </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Liz Rightmire </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">March 1, 2024</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<section id="whose-costs" class="level1">
+<h1>Whose Costs?</h1>
+<section id="introduction" class="level3">
+<h3 class="anchored" data-anchor-id="introduction">Introduction</h3>
+<p>This blog tackles a real world problem: given information on an individual and their specific loan request, should a bank offer this person a loan? I will conduct an exploration of the data to determine which features in the dataset are the best predictors of a person’s loan status (whether they will default on their loan, or not). Using logistic regression, I will determine a weight vector to use in a linear score function. Then, with the only goal of maximizing profit, I will choose a threshold value: individuals with scores below this value will be offered a loan by the mythical Liz Bank, and those with scores above this value will be denied. However, a model created with the sole goal of maximizing profit is bound to make harsh judgements and marginialize groups. At the end of this post, I’ll evaluate to what extent this is true.</p>
+<div id="cell-4" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># import relevent packages</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>First, let’s grab the data. Our dataset has 12 features and 22,907 entries. Our predictor variable is <code>loan_status</code>: a 1 indicates that this person defaulted on the loan and the bank lost money (bad!), and a 0 means they didn’t default.</p>
+<div id="cell-6" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">"https://raw.githubusercontent.com/PhilChodrow/ml-notes/main/data/credit-risk/train.csv"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>df_train <span class="op">=</span> pd.read_csv(url)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>df_train <span class="op">=</span> df_train.dropna()</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>df_train</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">person_age</th>
+<th data-quarto-table-cell-role="th">person_income</th>
+<th data-quarto-table-cell-role="th">person_home_ownership</th>
+<th data-quarto-table-cell-role="th">person_emp_length</th>
+<th data-quarto-table-cell-role="th">loan_intent</th>
+<th data-quarto-table-cell-role="th">loan_grade</th>
+<th data-quarto-table-cell-role="th">loan_amnt</th>
+<th data-quarto-table-cell-role="th">loan_int_rate</th>
+<th data-quarto-table-cell-role="th">loan_status</th>
+<th data-quarto-table-cell-role="th">loan_percent_income</th>
+<th data-quarto-table-cell-role="th">cb_person_default_on_file</th>
+<th data-quarto-table-cell-role="th">cb_person_cred_hist_length</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1</td>
+<td>27</td>
+<td>98000</td>
+<td>RENT</td>
+<td>3.0</td>
+<td>EDUCATION</td>
+<td>C</td>
+<td>11750</td>
+<td>13.47</td>
+<td>0</td>
+<td>0.12</td>
+<td>Y</td>
+<td>6</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2</td>
+<td>22</td>
+<td>36996</td>
+<td>RENT</td>
+<td>5.0</td>
+<td>EDUCATION</td>
+<td>A</td>
+<td>10000</td>
+<td>7.51</td>
+<td>0</td>
+<td>0.27</td>
+<td>N</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">3</td>
+<td>24</td>
+<td>26000</td>
+<td>RENT</td>
+<td>2.0</td>
+<td>MEDICAL</td>
+<td>C</td>
+<td>1325</td>
+<td>12.87</td>
+<td>1</td>
+<td>0.05</td>
+<td>N</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">4</td>
+<td>29</td>
+<td>53004</td>
+<td>MORTGAGE</td>
+<td>2.0</td>
+<td>HOMEIMPROVEMENT</td>
+<td>A</td>
+<td>15000</td>
+<td>9.63</td>
+<td>0</td>
+<td>0.28</td>
+<td>N</td>
+<td>10</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6</td>
+<td>21</td>
+<td>21700</td>
+<td>RENT</td>
+<td>2.0</td>
+<td>HOMEIMPROVEMENT</td>
+<td>D</td>
+<td>5500</td>
+<td>14.91</td>
+<td>1</td>
+<td>0.25</td>
+<td>N</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">26059</td>
+<td>36</td>
+<td>150000</td>
+<td>MORTGAGE</td>
+<td>8.0</td>
+<td>EDUCATION</td>
+<td>A</td>
+<td>3000</td>
+<td>7.29</td>
+<td>0</td>
+<td>0.02</td>
+<td>N</td>
+<td>17</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">26060</td>
+<td>23</td>
+<td>48000</td>
+<td>RENT</td>
+<td>1.0</td>
+<td>VENTURE</td>
+<td>A</td>
+<td>4325</td>
+<td>5.42</td>
+<td>0</td>
+<td>0.09</td>
+<td>N</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">26061</td>
+<td>22</td>
+<td>60000</td>
+<td>RENT</td>
+<td>0.0</td>
+<td>MEDICAL</td>
+<td>B</td>
+<td>15000</td>
+<td>11.71</td>
+<td>0</td>
+<td>0.25</td>
+<td>N</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">26062</td>
+<td>30</td>
+<td>144000</td>
+<td>MORTGAGE</td>
+<td>12.0</td>
+<td>PERSONAL</td>
+<td>C</td>
+<td>35000</td>
+<td>12.68</td>
+<td>0</td>
+<td>0.24</td>
+<td>N</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">26063</td>
+<td>25</td>
+<td>60000</td>
+<td>RENT</td>
+<td>5.0</td>
+<td>EDUCATION</td>
+<td>A</td>
+<td>21450</td>
+<td>7.29</td>
+<td>1</td>
+<td>0.36</td>
+<td>N</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+
+<p>22907 rows × 12 columns</p>
+</div>
+</div>
+</div>
+</section>
+<section id="explore-data" class="level3">
+<h3 class="anchored" data-anchor-id="explore-data">Explore Data</h3>
+<p>Let’s make a summary table and 2 visualizations to explore our data. In this process, we want to begin to determine which features may be good predictors of loan status.</p>
+<p>First, let’s look at the mean loan amount for different home ownership statuses. Unsurprisingly, people with mortgages had a high mean loan amount of ~10,600. This makes sense, as their loan may be the mortgage itself, or these individuals’ lack of disposable income may lead them to take loans for other purposes as well. People who rent and own houses had lower mean loan amounts around $8,000 - $9,000.</p>
+<div id="cell-9" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>table <span class="op">=</span> df_train.groupby([<span class="st">'person_home_ownership'</span>]).agg(<span class="st">"loan_amnt"</span>).mean().reset_index()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">person_home_ownership</th>
+<th data-quarto-table-cell-role="th">loan_amnt</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>MORTGAGE</td>
+<td>10620.177719</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>OTHER</td>
+<td>11305.194805</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>OWN</td>
+<td>9051.955782</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>RENT</td>
+<td>8912.191822</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Next, I made a scatterplot illustrating loan status depending on loan interest rate and loan amount. From the graph, I was able to infer a decision boundary for loan interest rate: &gt;12.5% and people tend to default on their loans, &lt;12.5% and people tend not to. Curiously, it was challenging to see a pattern when considering loan amount.</p>
+<div id="cell-11" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>sns.set_palette(<span class="st">"dark"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>plot1 <span class="op">=</span> sns.scatterplot(df_train, </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                        x <span class="op">=</span> <span class="st">"loan_int_rate"</span>, </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                        y <span class="op">=</span> <span class="st">"loan_amnt"</span>, </span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                        hue <span class="op">=</span> <span class="st">"cb_person_default_on_file"</span>, </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                        size <span class="op">=</span> <span class="fl">0.5</span>).<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">" Loan Interest Rate "</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                                        ylabel <span class="op">=</span> <span class="st">" Loan Amount"</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                                        title <span class="op">=</span> <span class="st">"Defaults based on Loan Interest Rate and Loan Amount"</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>plt.legend(title <span class="op">=</span> <span class="st">"Default on File"</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>plot1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<pre><code>[Text(0.5, 0, ' Loan Interest Rate '),
+ Text(0, 0.5, ' Loan Amount'),
+ Text(0.5, 1.0, 'Defaults based on Loan Interest Rate and Loan Amount')]</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-5-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Finally, these histograms helped me understand how purpose of loans change with age. Unsurprisingly, people in their twenties tend to take out loans for education, with people in their late twenties making venture loans to start businesses. With age, loans transition for medical and personal purposes.</p>
+<div id="cell-13" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">3</span>,<span class="dv">2</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Distribution of Loan Intent by Age"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>plt.subplots_adjust(hspace <span class="op">=</span> <span class="fl">0.9</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>sns.histplot(data <span class="op">=</span> df_train[df_train[<span class="st">'loan_intent'</span>] <span class="op">==</span> <span class="st">"VENTURE"</span>], x <span class="op">=</span> <span class="st">"person_age"</span>, color<span class="op">=</span><span class="st">"skyblue"</span>, ax <span class="op">=</span> axs[<span class="dv">0</span>,<span class="dv">0</span>], bins <span class="op">=</span> <span class="dv">60</span>).<span class="bu">set</span>(title <span class="op">=</span> <span class="st">"Venture"</span>, ylim <span class="op">=</span> (<span class="dv">0</span>,<span class="dv">2000</span>), xlim <span class="op">=</span> (<span class="dv">20</span>,<span class="dv">60</span>), xlabel <span class="op">=</span> <span class="st">"age"</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>sns.histplot(data <span class="op">=</span> df_train[df_train[<span class="st">'loan_intent'</span>] <span class="op">==</span> <span class="st">"EDUCATION"</span>], x <span class="op">=</span> <span class="st">"person_age"</span>, color<span class="op">=</span><span class="st">"olive"</span>, ax <span class="op">=</span> axs[<span class="dv">1</span>,<span class="dv">0</span>], bins <span class="op">=</span> <span class="dv">60</span>).<span class="bu">set</span>(title <span class="op">=</span> <span class="st">"Education"</span>, ylim <span class="op">=</span> (<span class="dv">0</span>,<span class="dv">2000</span>), xlim <span class="op">=</span> (<span class="dv">20</span>,<span class="dv">60</span>), xlabel <span class="op">=</span> <span class="st">"age"</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>sns.histplot(data <span class="op">=</span> df_train[df_train[<span class="st">'loan_intent'</span>] <span class="op">==</span> <span class="st">"MEDICAL"</span>], x <span class="op">=</span> <span class="st">"person_age"</span>, color<span class="op">=</span><span class="st">"gold"</span>, ax <span class="op">=</span> axs[<span class="dv">2</span>,<span class="dv">0</span>], bins <span class="op">=</span> <span class="dv">35</span>).<span class="bu">set</span>(title <span class="op">=</span> <span class="st">"Medical"</span>, ylim <span class="op">=</span> (<span class="dv">0</span>,<span class="dv">2000</span>), xlim <span class="op">=</span> (<span class="dv">20</span>,<span class="dv">60</span>), xlabel <span class="op">=</span> <span class="st">"age"</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>sns.histplot(data <span class="op">=</span> df_train[df_train[<span class="st">'loan_intent'</span>] <span class="op">==</span> <span class="st">"HOMEIMPROVEMENT"</span>], x <span class="op">=</span> <span class="st">"person_age"</span>, ax <span class="op">=</span> axs[<span class="dv">0</span>,<span class="dv">1</span>], bins <span class="op">=</span> <span class="dv">25</span>).<span class="bu">set</span>(title <span class="op">=</span> <span class="st">"Home Improvement"</span>, ylim <span class="op">=</span> (<span class="dv">0</span>,<span class="dv">2000</span>), xlim <span class="op">=</span> (<span class="dv">20</span>,<span class="dv">60</span>), ylabel <span class="op">=</span> <span class="va">None</span>, xlabel <span class="op">=</span> <span class="st">"age"</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>sns.histplot(data <span class="op">=</span> df_train[df_train[<span class="st">'loan_intent'</span>] <span class="op">==</span> <span class="st">"PERSONAL"</span>], x <span class="op">=</span> <span class="st">"person_age"</span>, color<span class="op">=</span><span class="st">"teal"</span>, ax <span class="op">=</span> axs[<span class="dv">1</span>,<span class="dv">1</span>], bins <span class="op">=</span> <span class="dv">60</span>).<span class="bu">set</span>(title <span class="op">=</span> <span class="st">"Personal"</span>, ylim <span class="op">=</span> (<span class="dv">0</span>,<span class="dv">2000</span>), xlim <span class="op">=</span> (<span class="dv">20</span>,<span class="dv">60</span>), ylabel <span class="op">=</span> <span class="va">None</span>, xlabel <span class="op">=</span> <span class="st">"age"</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>sns.histplot(data <span class="op">=</span> df_train[df_train[<span class="st">'loan_intent'</span>] <span class="op">==</span> <span class="st">"DEBTCONSOLIDATION"</span>], x <span class="op">=</span> <span class="st">"person_age"</span>, ax <span class="op">=</span> axs[<span class="dv">2</span>,<span class="dv">1</span>], bins <span class="op">=</span> <span class="dv">25</span>).<span class="bu">set</span>(title <span class="op">=</span> <span class="st">"Debt Consolidation"</span>, ylim <span class="op">=</span> (<span class="dv">0</span>,<span class="dv">2000</span>), xlim <span class="op">=</span> (<span class="dv">20</span>,<span class="dv">60</span>), ylabel <span class="op">=</span> <span class="va">None</span>, xlabel <span class="op">=</span> <span class="st">"age"</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>fig.suptitle(<span class="st">' Distribution of Loan Intent by Age '</span>, fontsize<span class="op">=</span><span class="dv">20</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/Users/lizrightmire/anaconda3/envs/ml-0451/lib/python3.9/site-packages/seaborn/_oldcore.py:1119: FutureWarning: use_inf_as_na option is deprecated and will be removed in a future version. Convert inf values to NaN before operating instead.
+  with pd.option_context('mode.use_inf_as_na', True):
+/Users/lizrightmire/anaconda3/envs/ml-0451/lib/python3.9/site-packages/seaborn/_oldcore.py:1119: FutureWarning: use_inf_as_na option is deprecated and will be removed in a future version. Convert inf values to NaN before operating instead.
+  with pd.option_context('mode.use_inf_as_na', True):
+/Users/lizrightmire/anaconda3/envs/ml-0451/lib/python3.9/site-packages/seaborn/_oldcore.py:1119: FutureWarning: use_inf_as_na option is deprecated and will be removed in a future version. Convert inf values to NaN before operating instead.
+  with pd.option_context('mode.use_inf_as_na', True):
+/Users/lizrightmire/anaconda3/envs/ml-0451/lib/python3.9/site-packages/seaborn/_oldcore.py:1119: FutureWarning: use_inf_as_na option is deprecated and will be removed in a future version. Convert inf values to NaN before operating instead.
+  with pd.option_context('mode.use_inf_as_na', True):
+/Users/lizrightmire/anaconda3/envs/ml-0451/lib/python3.9/site-packages/seaborn/_oldcore.py:1119: FutureWarning: use_inf_as_na option is deprecated and will be removed in a future version. Convert inf values to NaN before operating instead.
+  with pd.option_context('mode.use_inf_as_na', True):
+/Users/lizrightmire/anaconda3/envs/ml-0451/lib/python3.9/site-packages/seaborn/_oldcore.py:1119: FutureWarning: use_inf_as_na option is deprecated and will be removed in a future version. Convert inf values to NaN before operating instead.
+  with pd.option_context('mode.use_inf_as_na', True):</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-6-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="build-a-model" class="level3">
+<h3 class="anchored" data-anchor-id="build-a-model">Build a Model</h3>
+<p>Now it’s time to build a model. First, one-hot-encode the qualitative columns in the training set and drop features not permitted in the mdoel (loan status – the predictor, and loan grade)</p>
+<div id="cell-16" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> LabelEncoder</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># before one-hot-encoding, make copy of data for later visualization</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>df_for_viz <span class="op">=</span> df_train.copy()</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co"># label-encode qualitative features</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>le <span class="op">=</span> LabelEncoder()</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> label <span class="kw">in</span> [<span class="st">"loan_intent"</span>, <span class="st">"cb_person_default_on_file"</span>]:</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    df_train[label] <span class="op">=</span> le.fit_transform(df_train[label])</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co"># manually one-hot encode to force more logical order</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>df_train[<span class="st">'person_home_ownership'</span>] <span class="op">=</span> df_train[<span class="st">'person_home_ownership'</span>].replace(<span class="st">'OTHER'</span>, <span class="dv">0</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>df_train[<span class="st">'person_home_ownership'</span>] <span class="op">=</span> df_train[<span class="st">'person_home_ownership'</span>].replace(<span class="st">'RENT'</span>, <span class="dv">1</span>)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>df_train[<span class="st">'person_home_ownership'</span>] <span class="op">=</span> df_train[<span class="st">'person_home_ownership'</span>].replace(<span class="st">'MORTGAGE'</span>, <span class="dv">2</span>)</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>df_train[<span class="st">'person_home_ownership'</span>] <span class="op">=</span> df_train[<span class="st">'person_home_ownership'</span>].replace(<span class="st">'OWN'</span>, <span class="dv">3</span>)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>y_train <span class="op">=</span> df_train[<span class="st">"loan_status"</span>]</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>X_train <span class="op">=</span> df_train.drop(columns<span class="op">=</span>[<span class="st">'loan_status'</span>, <span class="st">'loan_grade'</span>])</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>X_train</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">person_age</th>
+<th data-quarto-table-cell-role="th">person_income</th>
+<th data-quarto-table-cell-role="th">person_home_ownership</th>
+<th data-quarto-table-cell-role="th">person_emp_length</th>
+<th data-quarto-table-cell-role="th">loan_intent</th>
+<th data-quarto-table-cell-role="th">loan_amnt</th>
+<th data-quarto-table-cell-role="th">loan_int_rate</th>
+<th data-quarto-table-cell-role="th">loan_percent_income</th>
+<th data-quarto-table-cell-role="th">cb_person_default_on_file</th>
+<th data-quarto-table-cell-role="th">cb_person_cred_hist_length</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1</td>
+<td>27</td>
+<td>98000</td>
+<td>1</td>
+<td>3.0</td>
+<td>1</td>
+<td>11750</td>
+<td>13.47</td>
+<td>0.12</td>
+<td>1</td>
+<td>6</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2</td>
+<td>22</td>
+<td>36996</td>
+<td>1</td>
+<td>5.0</td>
+<td>1</td>
+<td>10000</td>
+<td>7.51</td>
+<td>0.27</td>
+<td>0</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">3</td>
+<td>24</td>
+<td>26000</td>
+<td>1</td>
+<td>2.0</td>
+<td>3</td>
+<td>1325</td>
+<td>12.87</td>
+<td>0.05</td>
+<td>0</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">4</td>
+<td>29</td>
+<td>53004</td>
+<td>2</td>
+<td>2.0</td>
+<td>2</td>
+<td>15000</td>
+<td>9.63</td>
+<td>0.28</td>
+<td>0</td>
+<td>10</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6</td>
+<td>21</td>
+<td>21700</td>
+<td>1</td>
+<td>2.0</td>
+<td>2</td>
+<td>5500</td>
+<td>14.91</td>
+<td>0.25</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">26059</td>
+<td>36</td>
+<td>150000</td>
+<td>2</td>
+<td>8.0</td>
+<td>1</td>
+<td>3000</td>
+<td>7.29</td>
+<td>0.02</td>
+<td>0</td>
+<td>17</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">26060</td>
+<td>23</td>
+<td>48000</td>
+<td>1</td>
+<td>1.0</td>
+<td>5</td>
+<td>4325</td>
+<td>5.42</td>
+<td>0.09</td>
+<td>0</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">26061</td>
+<td>22</td>
+<td>60000</td>
+<td>1</td>
+<td>0.0</td>
+<td>3</td>
+<td>15000</td>
+<td>11.71</td>
+<td>0.25</td>
+<td>0</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">26062</td>
+<td>30</td>
+<td>144000</td>
+<td>2</td>
+<td>12.0</td>
+<td>4</td>
+<td>35000</td>
+<td>12.68</td>
+<td>0.24</td>
+<td>0</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">26063</td>
+<td>25</td>
+<td>60000</td>
+<td>1</td>
+<td>5.0</td>
+<td>1</td>
+<td>21450</td>
+<td>7.29</td>
+<td>0.36</td>
+<td>0</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+
+<p>22907 rows × 10 columns</p>
+</div>
+</div>
+</div>
+<p>What number of features, and which ones, are most effective in a model to predict loan status? To answer this question, I turned to logistic regression. Utilizing the combinations function from itertools, I fit a logistic regression model with 5 cross-validation batches for each combination of features. I began with <code>NUMFEATURES = 2</code> to test couples of features and found that <code>person_home_ownership</code> and <code>loan_percent_income</code> produced the highest score of 0.849. Adjusting <code>NUMFEATURES</code> to 3 and 4 produced highest scores of 0.484, so I deduced that those two features to be the simplest and most effecetive.</p>
+<div id="cell-18" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> itertools <span class="im">import</span> combinations</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> cross_val_score</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">'max_colwidth'</span>, <span class="dv">10000</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>NUMFEATURES <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>cols <span class="op">=</span> X_train.columns</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>score_df_columns <span class="op">=</span> [<span class="st">'features'</span>, <span class="st">'score'</span>, <span class="st">'weights'</span>]</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>score_df <span class="op">=</span> pd.DataFrame(columns <span class="op">=</span> score_df_columns)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> combo <span class="kw">in</span> combinations(cols, NUMFEATURES):</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  combo <span class="op">=</span> <span class="bu">list</span>(combo)</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Logistic Regression</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  LR <span class="op">=</span> LogisticRegression(max_iter <span class="op">=</span> <span class="dv">20000000000</span>)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  LR.fit(X_train[combo], y_train)  </span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  LRscore <span class="op">=</span> cross_val_score(LR, X_train[combo], y_train, cv <span class="op">=</span> <span class="dv">5</span>).mean()</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  score_df.loc[<span class="bu">len</span>(score_df.index)] <span class="op">=</span> [combo, LRscore, LR.coef_]  </span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>score_df <span class="op">=</span> score_df.sort_values(by<span class="op">=</span><span class="st">'score'</span>, ascending<span class="op">=</span><span class="va">False</span>).head(<span class="dv">10</span>)</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>score_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">features</th>
+<th data-quarto-table-cell-role="th">score</th>
+<th data-quarto-table-cell-role="th">weights</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">21</td>
+<td>[person_home_ownership, loan_percent_income]</td>
+<td>0.848736</td>
+<td>[[-1.0098629403833108, 8.271824027284113]]</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">39</td>
+<td>[loan_int_rate, loan_percent_income]</td>
+<td>0.823416</td>
+<td>[[0.2896471726415302, 8.417607957665085]]</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">32</td>
+<td>[loan_intent, loan_percent_income]</td>
+<td>0.819269</td>
+<td>[[-0.1108135938796114, 8.2548348300199]]</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">27</td>
+<td>[person_emp_length, loan_percent_income]</td>
+<td>0.819138</td>
+<td>[[-0.04604467360459407, 8.17718472200731]]</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6</td>
+<td>[person_age, loan_percent_income]</td>
+<td>0.815471</td>
+<td>[[-0.0058903490094554785, 8.195442809295034]]</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">43</td>
+<td>[loan_percent_income, cb_person_cred_hist_length]</td>
+<td>0.815340</td>
+<td>[[8.201924752324944, -0.007641209561773739]]</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">20</td>
+<td>[person_home_ownership, loan_int_rate]</td>
+<td>0.814292</td>
+<td>[[-0.9816330580330728, 0.2767376475314839]]</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">42</td>
+<td>[loan_percent_income, cb_person_default_on_file]</td>
+<td>0.813769</td>
+<td>[[8.373163550192576, 1.0910615242300115]]</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">12</td>
+<td>[person_income, loan_amnt]</td>
+<td>0.808006</td>
+<td>[[-4.057354027170065e-05, 0.0001065591015240086]]</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">31</td>
+<td>[loan_intent, loan_int_rate]</td>
+<td>0.803990</td>
+<td>[[-0.10705093453352543, 0.27916038916611374]]</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>From the <code>LogisticRegression.coef_</code> features, I was able to find the weights to use in my score function.</p>
+<div id="cell-20" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> score_df.iloc[<span class="dv">0</span>][<span class="st">"weights"</span>][<span class="dv">0</span>]</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>weights</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
+<pre><code>array([-1.00986294,  8.27182403])</code></pre>
+</div>
+</div>
+</section>
+<section id="find-a-threshold" class="level3">
+<h3 class="anchored" data-anchor-id="find-a-threshold">Find a Threshold</h3>
+<p>Extract the two desired features for the <code>X_train</code>dataset, and set the <code>y_train</code> dataset to be the predictor variable – <code>loan_status</code></p>
+<div id="cell-23" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>X_train <span class="op">=</span> df_train[[<span class="st">'person_home_ownership'</span>, <span class="st">'loan_percent_income'</span>]]</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>y_train <span class="op">=</span> df_train[<span class="st">'loan_status'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Before we continue with making our model, let’s quickly check if it makes sense that these two variables are effective in modeling loan status. It turns out that yes, we see clear differences in <code>loan_percent_income</code> in the different <code>person_home_ownership</code> groups for those who did and didn’t default on their loans.</p>
+<div id="cell-25" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>sns.set_palette(<span class="st">"dark"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>plot1 <span class="op">=</span> sns.barplot(df_for_viz, </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>                        x <span class="op">=</span> <span class="st">"person_home_ownership"</span>, </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>                        y <span class="op">=</span> <span class="st">"loan_percent_income"</span>, </span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>                        hue <span class="op">=</span> <span class="st">"loan_status"</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>plt.legend(title <span class="op">=</span> <span class="st">"Default on File"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>AttributeError: 'numpy.int64' object has no attribute 'startswith'</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-11-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The linear score for each entry of <code>X_train</code> is just <code>X_train</code> @ <code>weights</code>, where @ represents matrix multiplication.</p>
+<div id="cell-27" class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> linear_score(X, w):</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> X<span class="op">@</span>w</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> linear_score(X_train, weights)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s take a look at the scores we produced. All scores are between -3 and 5, with most being around 0. The distribution of scores roughly takes the form of a bell curve.</p>
+<div id="cell-29" class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>hist <span class="op">=</span> plt.hist(s)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>labs <span class="op">=</span> plt.gca().<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="vs">r"Score $s$"</span>, ylabel <span class="op">=</span> <span class="st">"Frequency"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-13-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>What should the threshold be to maximize profit? To answer this question, I chose to copy <code>df_train</code> into <code>df_profit</code>. This way, I could add a column <code>y_pred</code>, which is <code>False</code> if the person’s score is less than the threshold and <code>True</code> if it is greater than or equal to the threshold. With a for loop, different values of threshold <code>t</code> can be considered. Another column, outcome, labels entries as true negatives, false negatives, false positives, and true positives. That way, each person’s profit contribution to the bank can be stored in a final column: <code>profit</code>. True positives and false positives don’t contribute any profit (neither positive nor negative) because they won’t be offered a loan in the first place – these people are expected to default. To find the average profit per loan, divide by the combined number of false negatives and true negatives</p>
+<div id="cell-31" class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>df_profit <span class="op">=</span> df_train</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> np.linspace(s.<span class="bu">min</span>()<span class="op">-</span><span class="fl">0.1</span>, s.<span class="bu">max</span>()<span class="op">+</span><span class="fl">0.1</span>, <span class="dv">101</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>profits <span class="op">=</span> []</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t <span class="kw">in</span> T:</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    y_pred <span class="op">=</span> (s <span class="op">&gt;=</span> t)</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    df_profit[<span class="st">'y_pred'</span>] <span class="op">=</span> y_pred</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    df_profit[<span class="st">'outcome'</span>] <span class="op">=</span> <span class="st">"empty"</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    df_profit[<span class="st">'profit'</span>] <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># label entries as true/false negative/positive</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    df_profit.loc[(df_profit[<span class="st">'y_pred'</span>] <span class="op">==</span> <span class="va">False</span>) <span class="op">&amp;</span> (df_profit[<span class="st">'loan_status'</span>] <span class="op">==</span> <span class="dv">0</span>), <span class="st">'outcome'</span>] <span class="op">=</span> <span class="st">'TN'</span> <span class="co"># gain money</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    df_profit.loc[(df_profit[<span class="st">'y_pred'</span>] <span class="op">==</span> <span class="va">False</span>) <span class="op">&amp;</span> (df_profit[<span class="st">'loan_status'</span>] <span class="op">==</span> <span class="dv">1</span>), <span class="st">'outcome'</span>] <span class="op">=</span> <span class="st">'FN'</span> <span class="co"># lose money</span></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    df_profit.loc[(df_profit[<span class="st">'y_pred'</span>] <span class="op">==</span> <span class="va">True</span>) <span class="op">&amp;</span> (df_profit[<span class="st">'loan_status'</span>] <span class="op">==</span> <span class="dv">0</span>), <span class="st">'outcome'</span>] <span class="op">=</span> <span class="st">'FP'</span> <span class="co"># won't give loan</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    df_profit.loc[(df_profit[<span class="st">'y_pred'</span>] <span class="op">==</span> <span class="va">True</span>) <span class="op">&amp;</span> (df_profit[<span class="st">'loan_status'</span>] <span class="op">==</span> <span class="dv">1</span>), <span class="st">'outcome'</span>] <span class="op">=</span> <span class="st">'TP'</span> <span class="co"># won't give loan</span></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># true positive -- bank makes money!</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>    df_profit.loc[df_profit[<span class="st">'outcome'</span>] <span class="op">==</span> <span class="st">'TN'</span>, <span class="st">'profit'</span>] <span class="op">=</span> df_profit[<span class="st">'loan_amnt'</span>] <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> (<span class="fl">0.25</span> <span class="op">*</span> (df_profit[<span class="st">'loan_int_rate'</span>] <span class="op">/</span> <span class="dv">100</span>)))<span class="op">**</span><span class="dv">10</span> <span class="op">-</span> (df_profit[<span class="st">'loan_amnt'</span>])</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># False negative -- bank loses money</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>    df_profit.loc[df_profit[<span class="st">'outcome'</span>] <span class="op">==</span> <span class="st">'FN'</span>, <span class="st">'profit'</span>] <span class="op">=</span> df_profit[<span class="st">'loan_amnt'</span>] <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> (<span class="fl">0.25</span> <span class="op">*</span> (df_profit[<span class="st">'loan_int_rate'</span>] <span class="op">/</span> <span class="dv">100</span>)))<span class="op">**</span><span class="dv">3</span> <span class="op">-</span> (<span class="fl">1.7</span><span class="op">*</span>df_profit[<span class="st">'loan_amnt'</span>])</span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># total numbers of false negatives and true negatives, to calculate avg profit/ accepted loan (pred = False)</span></span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>    numFN <span class="op">=</span> df_profit.loc[df_profit[<span class="st">'outcome'</span>] <span class="op">==</span> <span class="st">'FN'</span>].size</span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>    numTN <span class="op">=</span> df_profit.loc[df_profit[<span class="st">'outcome'</span>] <span class="op">==</span> <span class="st">'TN'</span>].size</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (numFN <span class="op">+</span> numTN <span class="op">!=</span> <span class="dv">0</span>):</span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a>        totalprof <span class="op">=</span> <span class="bu">sum</span>(df_profit[<span class="st">'profit'</span>]) <span class="op">/</span> (numFN <span class="op">+</span> numTN)</span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a>        profits.append(totalprof)</span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a>        profits.append(<span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Plotting the average profit per loan results for each threshold value shows a maximum when threshold = -2. The expected profit per loan is around $110 at this value.</p>
+<div id="cell-33" class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.ticker <span class="im">as</span> ticker</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>plt.plot(T, profits)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>plt.gca().<span class="bu">set</span>(ylim <span class="op">=</span> (<span class="dv">0</span>, <span class="dv">120</span>), xlim <span class="op">=</span> (<span class="op">-</span><span class="dv">4</span>, <span class="dv">4</span>))</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>labs <span class="op">=</span> plt.gca().<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="vs">r"Threshold $t$"</span>, ylabel <span class="op">=</span> <span class="st">"Expected profit per loan"</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-15-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="evalute-your-model-from-the-banks-perspective" class="level3">
+<h3 class="anchored" data-anchor-id="evalute-your-model-from-the-banks-perspective">Evalute your Model from the Bank’s Perspective</h3>
+<p>Let’s run our model on the test set, with a threshold value of -2.</p>
+<div id="cell-36" class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">"https://raw.githubusercontent.com/PhilChodrow/ml-notes/main/data/credit-risk/test.csv"</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>df_test <span class="op">=</span> pd.read_csv(url)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>df_test <span class="op">=</span>df_test.dropna()</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>df_test[<span class="st">'person_home_ownership'</span>] <span class="op">=</span> df_test[<span class="st">'person_home_ownership'</span>].replace(<span class="st">'OTHER'</span>, <span class="dv">0</span>)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>df_test[<span class="st">'person_home_ownership'</span>] <span class="op">=</span> df_test[<span class="st">'person_home_ownership'</span>].replace(<span class="st">'RENT'</span>, <span class="dv">1</span>)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>df_test[<span class="st">'person_home_ownership'</span>] <span class="op">=</span> df_test[<span class="st">'person_home_ownership'</span>].replace(<span class="st">'MORTGAGE'</span>, <span class="dv">2</span>)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>df_test[<span class="st">'person_home_ownership'</span>] <span class="op">=</span> df_test[<span class="st">'person_home_ownership'</span>].replace(<span class="st">'OWN'</span>, <span class="dv">3</span>)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>X_test <span class="op">=</span> df_test[[<span class="st">'person_home_ownership'</span>, <span class="st">'loan_percent_income'</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="867">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">person_home_ownership</th>
+<th data-quarto-table-cell-role="th">loan_percent_income</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1</td>
+<td>0.02</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2</td>
+<td>0.29</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>1</td>
+<td>0.06</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>2</td>
+<td>0.15</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>1</td>
+<td>0.08</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6511</td>
+<td>2</td>
+<td>0.23</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">6513</td>
+<td>1</td>
+<td>0.29</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6514</td>
+<td>3</td>
+<td>0.22</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">6515</td>
+<td>2</td>
+<td>0.09</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6516</td>
+<td>1</td>
+<td>0.16</td>
+</tr>
+</tbody>
+</table>
+
+<p>5731 rows × 2 columns</p>
+</div>
+</div>
+</div>
+<div id="cell-37" class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>t <span class="op">=</span> <span class="op">-</span><span class="dv">2</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>s_test <span class="op">=</span> linear_score(X_test, weights)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>y_pred_test <span class="op">=</span> (s_test <span class="op">&gt;=</span> t)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-38" class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>df_profit <span class="op">=</span> df_test.copy()</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>df_profit[<span class="st">'y_pred'</span>] <span class="op">=</span> y_pred_test</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>df_profit[<span class="st">'outcome'</span>] <span class="op">=</span> <span class="st">"empty"</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>df_profit[<span class="st">'profit'</span>] <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>df_profit.loc[(df_profit[<span class="st">'y_pred'</span>] <span class="op">==</span> <span class="va">False</span>) <span class="op">&amp;</span> (df_profit[<span class="st">'loan_status'</span>] <span class="op">==</span> <span class="dv">0</span>), <span class="st">'outcome'</span>] <span class="op">=</span> <span class="st">'TN'</span> <span class="co"># gain money</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>df_profit.loc[(df_profit[<span class="st">'y_pred'</span>] <span class="op">==</span> <span class="va">False</span>) <span class="op">&amp;</span> (df_profit[<span class="st">'loan_status'</span>] <span class="op">==</span> <span class="dv">1</span>), <span class="st">'outcome'</span>] <span class="op">=</span> <span class="st">'FN'</span> <span class="co"># lose money</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>df_profit.loc[(df_profit[<span class="st">'y_pred'</span>] <span class="op">==</span> <span class="va">True</span>) <span class="op">&amp;</span> (df_profit[<span class="st">'loan_status'</span>] <span class="op">==</span> <span class="dv">0</span>), <span class="st">'outcome'</span>] <span class="op">=</span> <span class="st">'FP'</span> <span class="co"># won't give loan</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>df_profit.loc[(df_profit[<span class="st">'y_pred'</span>] <span class="op">==</span> <span class="va">True</span>) <span class="op">&amp;</span> (df_profit[<span class="st">'loan_status'</span>] <span class="op">==</span> <span class="dv">1</span>), <span class="st">'outcome'</span>] <span class="op">=</span> <span class="st">'TP'</span> <span class="co"># won't give loan</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="co"># true positive -- bank makes money!</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>df_profit.loc[df_profit[<span class="st">'outcome'</span>] <span class="op">==</span> <span class="st">'TN'</span>, <span class="st">'profit'</span>] <span class="op">=</span> df_profit[<span class="st">'loan_amnt'</span>] <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> (<span class="fl">0.25</span> <span class="op">*</span> (df_profit[<span class="st">'loan_int_rate'</span>] <span class="op">/</span> <span class="dv">100</span>)))<span class="op">**</span><span class="dv">10</span> <span class="op">-</span> (df_profit[<span class="st">'loan_amnt'</span>])</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a><span class="co"># False negative -- bank loses money</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>df_profit.loc[df_profit[<span class="st">'outcome'</span>] <span class="op">==</span> <span class="st">'FN'</span>, <span class="st">'profit'</span>] <span class="op">=</span> df_profit[<span class="st">'loan_amnt'</span>] <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> (<span class="fl">0.25</span> <span class="op">*</span> (df_profit[<span class="st">'loan_int_rate'</span>] <span class="op">/</span> <span class="dv">100</span>)))<span class="op">**</span><span class="dv">3</span> <span class="op">-</span> (<span class="fl">1.7</span><span class="op">*</span>df_profit[<span class="st">'loan_amnt'</span>])</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>numFN <span class="op">=</span> df_profit.loc[df_profit[<span class="st">'outcome'</span>] <span class="op">==</span> <span class="st">'FN'</span>].size</span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>numTN <span class="op">=</span> df_profit.loc[df_profit[<span class="st">'outcome'</span>] <span class="op">==</span> <span class="st">'TN'</span>].size</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>totalprofit <span class="op">=</span> <span class="bu">sum</span>(df_profit[<span class="st">'profit'</span>]) <span class="op">/</span> (numFN <span class="op">+</span> numTN)</span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(totalprofit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>139.52875179012145</code></pre>
+</div>
+</div>
+<p>The expected profit per borrower is ~$140. This is $30 larger, or 27% larger, than the average profit per loan on the test set.</p>
+</section>
+<section id="evaluate-model-from-borrowers-perspective" class="level3">
+<h3 class="anchored" data-anchor-id="evaluate-model-from-borrowers-perspective">Evaluate model from Borrower’s Perspective</h3>
+<p>Our model produces great profits for the bank. But how does it function from the borrower’s perspective?</p>
+<p>The following table shows one thing very clearly: this model does NOT grant loans to many individuals. In order to maximize the profit per loan, the model only predicts people to not default if they have a score &lt;-2. Considering the histogram of scores from earlier, we know that a very small subset of people in our training set had scores &lt;-2. In our test set, that’s only 174 people out of the total 5731.</p>
+<div id="cell-43" class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>df_profit.groupby(<span class="st">'y_pred'</span>).size()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="936">
+<pre><code>y_pred
+False     174
+True     5557
+dtype: int64</code></pre>
+</div>
+</div>
+<p>Let’s consider: is it more difficult for people in certain age groups to access credit? The following histogram indicates that no, our model accepts people from different age groups at equal rates.</p>
+<div id="cell-45" class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>,<span class="dv">2</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Distribution of Loan Intent by Age"</span>)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>plt.subplots_adjust(hspace <span class="op">=</span> <span class="fl">0.9</span>)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="co"># is it more difficult for people in certain age groups to access credit?</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>sns.histplot(data <span class="op">=</span> df_profit, x <span class="op">=</span> <span class="st">"person_age"</span>, hue <span class="op">=</span> <span class="st">"y_pred"</span>, bins <span class="op">=</span> <span class="dv">25</span>, edgecolor <span class="op">=</span> <span class="st">'grey'</span>, ax <span class="op">=</span> axs[<span class="dv">0</span>]).<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="st">"person age"</span>, ylabel <span class="op">=</span> <span class="st">"count"</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>sns.histplot(data <span class="op">=</span> df_profit[df_profit[<span class="st">'y_pred'</span>] <span class="op">==</span> <span class="va">False</span>], x <span class="op">=</span> <span class="st">"person_age"</span>, hue <span class="op">=</span> <span class="st">"y_pred"</span>, bins <span class="op">=</span> <span class="dv">25</span>, edgecolor <span class="op">=</span> <span class="st">'grey'</span>, ax<span class="op">=</span>axs[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/Users/lizrightmire/anaconda3/envs/ml-0451/lib/python3.9/site-packages/seaborn/_oldcore.py:1119: FutureWarning: use_inf_as_na option is deprecated and will be removed in a future version. Convert inf values to NaN before operating instead.
+  with pd.option_context('mode.use_inf_as_na', True):
+/Users/lizrightmire/anaconda3/envs/ml-0451/lib/python3.9/site-packages/seaborn/_oldcore.py:1119: FutureWarning: use_inf_as_na option is deprecated and will be removed in a future version. Convert inf values to NaN before operating instead.
+  with pd.option_context('mode.use_inf_as_na', True):</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-20-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>However, considering the following table, there are unfair trends. People 50+ are predicted to default 100% of the time and are consequently offered no loans by our model. It is easiest for people aged 40-50 to receive a loan; although they are expected to default 95.45% of the time, this is the lowest percentage of any age group.</p>
+<div id="cell-47" class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>bins <span class="op">=</span> [<span class="dv">20</span>, <span class="dv">30</span>, <span class="dv">40</span>, <span class="dv">50</span>, <span class="dv">60</span>, <span class="dv">70</span>] </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>df_profit[<span class="st">'Age Group'</span>] <span class="op">=</span> pd.cut(df_profit[<span class="st">'person_age'</span>], bins<span class="op">=</span>bins, labels<span class="op">=</span>[<span class="st">'20-30'</span>, <span class="st">'30-40'</span>, <span class="st">'40-50'</span>, <span class="st">'50-60'</span>, <span class="st">'60-70'</span>])</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>summary_stats <span class="op">=</span> df_profit.groupby(<span class="st">'Age Group'</span>).aggregate(<span class="st">'y_pred'</span>).mean()</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>summary_stats</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/var/folders/nd/3yjvm85j3rq1vhh53yn6cy0r0000gn/T/ipykernel_63697/368891113.py:3: FutureWarning: The default of observed=False is deprecated and will be changed to True in a future version of pandas. Pass observed=False to retain current behavior or observed=True to adopt the future default and silence this warning.
+  summary_stats = df_profit.groupby('Age Group').aggregate('y_pred').mean()</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="874">
+<pre><code>Age Group
+20-30    0.969766
+30-40    0.970776
+40-50    0.954545
+50-60    1.000000
+60-70    1.000000
+Name: y_pred, dtype: float64</code></pre>
+</div>
+</div>
+<p>Now to consider: is it more difficult for people to get loans in order to pay for medical expenses? Medical loans are the 2nd most challenging to secure with our model, after Debt Consolidation.</p>
+<div id="cell-49" class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predictions for default in groups</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>df_profit.groupby(<span class="st">'loan_intent'</span>).aggregate(<span class="st">'y_pred'</span>).mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="875">
+<pre><code>loan_intent
+DEBTCONSOLIDATION    0.997788
+EDUCATION            0.963435
+HOMEIMPROVEMENT      0.965909
+MEDICAL              0.971109
+PERSONAL             0.970942
+VENTURE              0.950207
+Name: y_pred, dtype: float64</code></pre>
+</div>
+</div>
+<p>When compared to the actual rate of default, people in the test set defaulted on debt consolidation loans 28.76% of the time, and defaulted on medical loans 28.43% of the time.</p>
+<div id="cell-51" class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># actual rate of default:</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>df_profit.groupby(<span class="st">'loan_intent'</span>).aggregate(<span class="st">'loan_status'</span>).mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="876">
+<pre><code>loan_intent
+DEBTCONSOLIDATION    0.287611
+EDUCATION            0.167517
+HOMEIMPROVEMENT      0.250000
+MEDICAL              0.284250
+PERSONAL             0.220441
+VENTURE              0.146266
+Name: loan_status, dtype: float64</code></pre>
+</div>
+</div>
+<p>Finally, I am curious how a person’s income level impacts the ease with which they can access credit under my decision system. To answer this question, I made the following table which shows the percentages of people in each income group who would be granted a loan by my algorithm. Unfortunately, only 2.38% of people making &lt;$50,000 would be offered a loan by my model, whereas people making $150,000 - 200,000 would be offered a loan 5.13% of the time. People making $200,000+ would be granted loans at a much higher rate: 9.19%.</p>
+<div id="cell-53" class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># percentages of people predicted not to default</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the income groups</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>bins <span class="op">=</span> [<span class="dv">0</span>, <span class="dv">50000</span>, <span class="dv">100000</span>, <span class="dv">150000</span>, <span class="dv">200000</span>, np.inf]</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> [<span class="st">'0-50,000'</span>, <span class="st">'50,000-100,000'</span>, <span class="st">'100,000-150,000'</span>, <span class="st">'150,000-200,000'</span>, <span class="st">'200,000+'</span>]</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a new column for income groups</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>df_profit[<span class="st">'income_group'</span>] <span class="op">=</span> pd.cut(df_profit[<span class="st">'person_income'</span>], bins<span class="op">=</span>bins, labels<span class="op">=</span>labels)</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Group by income_group and y_pred and count the number of rows</span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>grouped <span class="op">=</span> df_profit.groupby([<span class="st">'income_group'</span>, <span class="st">'y_pred'</span>]).size()</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the percentage of rows where y_pred is False in each income group</span></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>percentage <span class="op">=</span> grouped.xs(<span class="va">False</span>, level<span class="op">=</span><span class="st">'y_pred'</span>) <span class="op">/</span> grouped.groupby(level<span class="op">=</span><span class="st">'income_group'</span>).<span class="bu">sum</span>() <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(percentage.reset_index())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      income_group         0
+0         0-50,000  2.378073
+1   50,000-100,000  3.041216
+2  100,000-150,000  4.570384
+3  150,000-200,000  5.128205
+4         200,000+  9.195402</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/var/folders/nd/3yjvm85j3rq1vhh53yn6cy0r0000gn/T/ipykernel_63697/537452620.py:11: FutureWarning: The default of observed=False is deprecated and will be changed to True in a future version of pandas. Pass observed=False to retain current behavior or observed=True to adopt the future default and silence this warning.
+  grouped = df_profit.groupby(['income_group', 'y_pred']).size()
+/var/folders/nd/3yjvm85j3rq1vhh53yn6cy0r0000gn/T/ipykernel_63697/537452620.py:14: FutureWarning: The default of observed=False is deprecated and will be changed to True in a future version of pandas. Pass observed=False to retain current behavior or observed=True to adopt the future default and silence this warning.
+  percentage = grouped.xs(False, level='y_pred') / grouped.groupby(level='income_group').sum() * 100</code></pre>
+</div>
+</div>
+</section>
+<section id="conclusion" class="level3">
+<h3 class="anchored" data-anchor-id="conclusion">Conclusion</h3>
+<p>In this exercise, I blindly set out with one goal: maximizing profit. I intentionally put my opinions aside to determine what the outcome would be if I truly just tried to make a model that makes the most money for a bank. Consequently, I used the “best” features for modeling loan status and set a very low threshold value that offered loans to very very few people – only ones rated very low chance of default. These people, unsurprisingly, tended to have high income, be in their 30s and 40s, and be requesting loans for venture use.</p>
+<p>Ok, so I’ve made this brutal algorithm, now I can finally bring my brain back into the equation and think about what I’ve done. The people the mythical Liz Bank is offering loans to… don’t NEED the loans as badly as the others. They’re already rich! This hardly feels fair – people who have more money to begin with can get loans for more money, while others can’t?</p>
+<p>Now I need to describe how I like to consider fairness. I like thinking about it in terms of equality vs.&nbsp;equity. In an equal world, everyone is treated the same no matter their circumstances. In an equitable world, people with less advantages are given a “boost” so that people have near equal opportunities. I think that a fair world is an equitable world, but not necessarily an equal world.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="fairness.jpg" class="img-fluid figure-img" style="width:50.0%"></p>
+<figcaption>citation:https://mostly.ai/blog/we-want-fair-ai-algorithms-but-how-to-define-fairness</figcaption>
+</figure>
+</div>
+<p>This was a valable exercise. My mom works on a loan committee at a small local bank, and now I am curious how she and her colleagues determine who to grant loans to in our community. I am excited to ask her more about this, any models they use in their decisions, and maybe offer her some new perspective on the issue. This exercise reminded me of the importance of staying connected to the problem I’m solving with ML: things get dicey when there’s only one goal in mind (e.g: maximize profit!)</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

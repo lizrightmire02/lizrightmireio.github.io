@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/WhoseCosts/index.html",
       "/posts/ClassifyingPalmerPenguins/index.html",
       "/posts/new-test-post/index.html",
       "/posts/new-new-test-post/index.html",
