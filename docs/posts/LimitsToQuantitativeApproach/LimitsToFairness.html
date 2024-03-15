@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.549">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Liz Rightmire">
+<meta name="dcterms.date" content="2023-03-14">
+<meta name="description" content="An essay considering and critiquing methods used to ensure fair algorithms">
+
+<title>Liz’s CSCI 0451 Blog - Limits of the Quantitative Approach to Bias and Fairness</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>
+
+      .quarto-title-block .quarto-title-banner h1,
+      .quarto-title-block .quarto-title-banner h2,
+      .quarto-title-block .quarto-title-banner h3,
+      .quarto-title-block .quarto-title-banner h4,
+      .quarto-title-block .quarto-title-banner h5,
+      .quarto-title-block .quarto-title-banner h6
+      {
+        color: white;
+      }
+
+      .quarto-title-block .quarto-title-banner {
+        color: white;
+background-image: url(../../img/landscape.png);
+background-size: cover;
+      }
+</style>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Liz’s CSCI 0451 Blog</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Limits of the Quantitative Approach to Bias and Fairness</h1>
+                  <div>
+        <div class="description">
+          An essay considering and critiquing methods used to ensure fair algorithms
+        </div>
+      </div>
+                </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Liz Rightmire </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">March 14, 2023</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<section id="limits-to-the-quantitative-approach-to-bias-and-fairness" class="level1">
+<h1>Limits to the Quantitative Approach to Bias and Fairness</h1>
+<section id="introduction" class="level3">
+<h3 class="anchored" data-anchor-id="introduction">Introduction</h3>
+<p>We live in the era of “Big Data.” What does this mean? Information regarding our individual movements and tendencies is constantly being collected via digital devices, sensors, and online platforms. This data takes various forms, be it in traditional databases, semi-structured formats like JSON, and unstructured data from sources like social media. Perhaps unsurprisingly, the pace with which this data is processed is constantly increasing – nearing real-time. Endless data is publicly available; massive datasets can be downloaded from portals or through APIs for any analytics use. Terabytes of data are funneled into machine learning algorithms which make decisions and offer recommendations for the common person, whether or not they’re aware of it. Companies, policymakers, and computer scientists alike rave about the efficiency and seemingly endless possibilities provided by big data and big data analytics.</p>
+<p>As algorithms started being used for decisions with significant outcomes, critics began to recognize the potential for these algorithms to become biased against individuals of certain identity groups, causing additional harm. Famously, algorithms used by the police force to predict where crimes may occur and algorithms used by the justice department to predict the probability of a defendant re-committing a crime were proven to be rampantly biased against people of color. Individuals concerned with the ethical implications of data-driven decisions sparked a movement countering Big Data, pushing for metrics of fairness in algorithms. Now, a framework for verifying fairness is common practice, relying on various quantitative methods. Researchers can use statistical definitions of fairness as a crutch to support their algorithmic findings.</p>
+</section>
+<section id="definitions-of-fairness" class="level3">
+<h3 class="anchored" data-anchor-id="definitions-of-fairness">Definitions of Fairness</h3>
+<p>There are three main quantitative definitions of fairness. First is error rate parity, in which all groups experience the same false negative rate and false positive rate. This means that whether a person is a member of Group A or Group B, the algorithm is equally likely to make a mistake. The next is acceptance rate parity, in which an algorithm equalizes acceptance rates across all groups. The outcome of an algorithm should be independent of group membership. Finally is sufficiency, in which the probability of seeing a positive outcome given a positive prediction is the same for all subgroups. Similarly, the probability of seeing a negative outcome given a negative prediction must also be the same for all subgroups (<span class="citation" data-cites="barocas2023fairness">Barocas, Hardt, and Narayanan (<a href="#ref-barocas2023fairness" role="doc-biblioref">2023</a>)</span>).</p>
+<p>Now, consider the moral standpoint, which also contains three “views” from which one can consider fairness: a narrow, middle, and broad view. In the narrow view, people similar with respect to a task should be treated similarly. Comparison should be between all people as individuals, not between members of specific groups. The middle view begs decision-makers to uphold an obligation to avoid perpetuating injustice. They must treat seemingly dissimilar people similarly when the causes of those differences are themselves problematic. Finally, the broad view of equality hopes that people with similar abilities and ambitions could achieve similar successes, despite inevitable inequities. This view isn’t really about fairness in decision-making, it’s about the design of society’s basic institutions, with the goal of preventing unjust inequalities from arising in the first place (<span class="citation" data-cites="barocas2023fairness">Barocas, Hardt, and Narayanan (<a href="#ref-barocas2023fairness" role="doc-biblioref">2023</a>)</span>).</p>
+</section>
+<section id="the-utility-of-quantitative-methods" class="level3">
+<h3 class="anchored" data-anchor-id="the-utility-of-quantitative-methods">The Utility of Quantitative Methods</h3>
+<p>One example of where quantitative and moral definitions of fairness are effectively leveraged to critique an algorithm appears in a study performed by Ali et al.&nbsp;titled “Discrimination through Optimization: How Facebook’s Ad Delivery Can Lead to Biased Outcomes.” In this study, the authors consider Facebook’s ad targeting algorithm, hoping to determine if it targets job advertisements differently from men and women. Facebook states, “we try to show people the ads that are most pertinent to them,” In doing this, the researchers wonder, does Facebook make gender or racial generalizations? The team created generic job posting advertisements for eleven different roles: AI developer, doctor, janitor, lawyer, lumberjack, nurse, preschool teacher, restaurant cashier, secretary, supermarket clerk, and taxi driver. The advertisements were submitted to Facebook and paid for to be “live” for 24 hours. Then, the research team collected ad delivery data and broke the results along gender, age, and race lines. They observed dramatic differences in ad delivery in different racial and gender groups. “Our ads for positions in the lumber industry deliver to over 90% men and to over 70% white users in aggregate, while our ads for janitors deliver to over 65% women and over 75% black users in aggregate” (<span class="citation" data-cites="ali2019discrimination">Ali et al. (<a href="#ref-ali2019discrimination" role="doc-biblioref">2019</a>)</span>).</p>
+<p>Here, the researchers proved that Facebook’s algorithm did not uphold the acceptance rate parity. The probability of receiving a lumber industry advertisement should be independent of gender, and the probability of receiving a janitorial advertisement should be independent from race, yet neither of these is the case. As far as non-technical definitions of fairness, the research team claimed that the algorithm was unfair considering the middle view. Facebook has an obligation to treat dissimilar people (men and women) similarly when the causes of the dissimilarities are themselves problematic. In this case, it is problematic to assume that men are more interested in lumberjack and AI roles than women, even if it is the case that more men click on these advertisements than women. Therefore, Facebook must consider adjusting its advertising scheme so as not to perpetuate gender stereotypes in labor. This excellent study acts as an optimistic example of the utilitarianism of quantitative metrics to shine a light on unintentional algorithmic bias.</p>
+</section>
+<section id="a-note-of-caution-arvind-naryanan" class="level3">
+<h3 class="anchored" data-anchor-id="a-note-of-caution-arvind-naryanan">A Note of Caution: Arvind Naryanan</h3>
+<p>However, these quantitative measures of fairness aren’t enough to claim an algorithm’s innocence, claims Arvind Narayanan, a computer scientist and professor at Princeton University. On October 11th, 2022, he gave a talk titled “The Limits of the Quantitative Approach to Discrimination,” which provides a timely and fresh criticism of quantitative measures of fairness. His central claim is: “Currently quantitative methods are primarily used to justify the status quo. I would argue that they do more harm than good” (<span class="citation" data-cites="narayanan2022limits">Narayanan (<a href="#ref-narayanan2022limits" role="doc-biblioref">2022</a>)</span>).</p>
+<p>Narayanan begins his speech by explaining that “all models are wrong, but some models are useful” (<span class="citation" data-cites="narayanan2022limits">Narayanan (<a href="#ref-narayanan2022limits" role="doc-biblioref">2022</a>)</span>). No machine learning model makes the right prediction every time; the simplification of trends necessary to fit a clean model introduces bias. In such generalizations, models feast on the status quo, engraining generalities and failing to treat them as problematic. However, we know that the way our world operates is extremely problematic; our reality is replete with discrimination. Therefore, Narayanan believes that “data aren’t inert and objective. They are political, and produced towards certain ends” (<span class="citation" data-cites="narayanan2022limits">Narayanan (<a href="#ref-narayanan2022limits" role="doc-biblioref">2022</a>)</span>). When data are collected for a certain purpose, there is inevitable bias baked into them. This notion is summarized well by Narayanan and co-authors Barocas and Hardt in their book Fairness and Machine Learning: Limitations and Opportunities. In the introduction, the authors explain that “the state of the world is reduced to a set of rows, columns, and values in the dataset. It’s a messy process, because the real world is messy. The term measurement is misleading, evoking an image of a dispassionate scientist recording what she observes, yet …it requires subjective human decisions.” (<span class="citation" data-cites="barocas2023fairness">Barocas, Hardt, and Narayanan (<a href="#ref-barocas2023fairness" role="doc-biblioref">2023</a>)</span>). There’s a popular notion that data doesn’t lie and a conclusion drawn from data must be fact. However, Narayanan’s concept of data explains it not as truth but as a concentrated soup of the biases, discriminations, and unequal opportunities present in the real world. To combat this characteristic of data, Narayanan says, “we should be spending most of our time on curating and interrogating datasets” before ever searching for statistical significance or fitting a model… it is important to look behind the facade of numbers to understand the hidden assumptions and politics of datasets” (<span class="citation" data-cites="narayanan2022limits">Narayanan (<a href="#ref-narayanan2022limits" role="doc-biblioref">2022</a>)</span>).</p>
+</section>
+<section id="drawbacks-to-the-quantitative-method" class="level3">
+<h3 class="anchored" data-anchor-id="drawbacks-to-the-quantitative-method">Drawbacks to the Quantitative Method</h3>
+<p>There is truth to Naryanan’s claim; it isn’t challenging to find studies where quantitative methods are used to prove an algorithm’s fairness when in reality, it is biased. In a study titled Gender Earning Gap in the Gig Economy, Cook et al.&nbsp;set out to investigate if Uber’s algorithm is to blame for a 7% gender pay gap among rideshare drivers. The authors hone in on driver data from the metropolitan area of Chicago. The authors are able to find a statistical significance in the difference in means between the driving speeds of men and women and the time of day they choose to work. They also determine that men stay on the platform for a longer amount of time, causing them to be more experienced. Finally, they find a difference between neighborhoods where male and female drivers choose to drive. Therefore, the authors reason that the pay gap is due to these differences alone and not due to any bias in Uber’s algorithm. Yes, the results of the quantitative method of choice – statistical tests – is valid, but this is an incredibly simplistic way to view the issue. The authors would have done well to consider the middle view of equality, in which decision-makers have an obligation to avoid perpetuating injustice. There’s obvious injustice here: women are likely to drive in a smaller subset of neighborhoods and during daylight hours when wages are less because of the history of assault and mistreatment towards women, typically occurring at late hours and disproportionally in certain areas. Looking deeper into the study, it is revealed that many of the authors are Uber employees. It isn’t surprising, then, that they choose to leverage quantitative methods in a dishonest way. (<span class="citation" data-cites="cook2021gender">Cook et al. (<a href="#ref-cook2021gender" role="doc-biblioref">2021</a>)</span>)</p>
+<p>This study is a prime example of “Big Dick Data,” as defined by D’ignazio, Catherine and Klein in their book <em>Data Feminism</em>. “Big Dick Data is used to describe big data projects characterized by patriarchial, cis-masculinist, totalizing fantasizes of world domination as enacted through data capture analysis” (<span class="citation" data-cites="d2023data">D’ignazio and Klein (<a href="#ref-d2023data" role="doc-biblioref">2023</a>)</span>). Big Dick data projects are dangerous because they ignore context and inflate their technical and scientific capabilities. The authors of <em>Data Feminism</em> highlight the importance of asking questions about the social, cultural, historical, instutional, and material conditions around how data was collected, a process Ali et al.&nbsp;failed to do – miserably.</p>
+</section>
+<section id="conclusion" class="level3">
+<h3 class="anchored" data-anchor-id="conclusion">Conclusion</h3>
+<p>Narayanan began his speech by saying, “I hope that this talk goes some way towards busting the myth that numbers don’t lie” (<span class="citation" data-cites="narayanan2022limits">Narayanan (<a href="#ref-narayanan2022limits" role="doc-biblioref">2022</a>)</span>). For me, at least, he succeeded in weakening my loyalty to data as capital-T Truth. I’ve realized that there is no way to collect a completely neutral, unbiased dataset, and therefore models always reflect the messy world we live in. You can just about always use quantitative methods to prove what you’re looking for, and that’s why a choice of null hypothesis is so important. In Ali et. al’s analysis of Uber’s algorithm, they set out to prove that gender bias wasn’t present, and unsurprisingly, they were able to prove such a thing using valid statistical claims.</p>
+<p>However, Narayanan goes so far as to say that quantitative methods do more harm than good and are too commonly used to justify racism. While I appreciate his stance, I still see the utility in quantitative methods; they can effectively be used to prove an algorithm to be racist or biased. It is true that there are so many quantitative definitions of fairness, meaning that under one definition, an algorithm can be proven to be biased, but under another, it can be proven to be fair. To bolster quantitative methods in a responsible, impactful way, we must not rely on just one quantitative definition of fairness and instead use them in combination with each other. Finally, we can’t just rely on numbers; it is important to bring the narrow, middle, and broad views of ethical fairness into every conversation.</p>
+
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-ali2019discrimination" class="csl-entry" role="listitem">
+Ali, Muhammad, Piotr Sapiezynski, Miranda Bogen, Aleksandra Korolova, Alan Mislove, and Aaron Rieke. 2019. <span>“Discrimination Through Optimization: How Facebook’s Ad Delivery Can Lead to Biased Outcomes.”</span> <em>Proceedings of the ACM on Human-Computer Interaction</em> 3 (CSCW): 1–30.
+</div>
+<div id="ref-barocas2023fairness" class="csl-entry" role="listitem">
+Barocas, Solon, Moritz Hardt, and Arvind Narayanan. 2023. <em>Fairness and Machine Learning: Limitations and Opportunities</em>. MIT Press.
+</div>
+<div id="ref-cook2021gender" class="csl-entry" role="listitem">
+Cook, Cody, Rebecca Diamond, Jonathan V Hall, John A List, and Paul Oyer. 2021. <span>“The Gender Earnings Gap in the Gig Economy: Evidence from over a Million Rideshare Drivers.”</span> <em>The Review of Economic Studies</em> 88 (5): 2210–38.
+</div>
+<div id="ref-d2023data" class="csl-entry" role="listitem">
+D’ignazio, Catherine, and Lauren F Klein. 2023. <em>Data Feminism</em>. MIT press.
+</div>
+<div id="ref-narayanan2022limits" class="csl-entry" role="listitem">
+Narayanan, Arvind. 2022. <span>“The Limits of the Quantitative Approach to Discrimination.”</span> Speech.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
