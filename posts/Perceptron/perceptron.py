@@ -45,7 +45,7 @@ class LinearModel:
         """
         scores = self.score(X)
 
-        y_hat = (scores > 0 ).float()
+        y_hat = 1.0 * (scores >= 0 )
 
         return y_hat
     
@@ -82,11 +82,14 @@ class Perceptron(LinearModel):
         return meanMisclassified
 
     def grad(self, X, y):
-        scores = self.score(X)
 
-        mask = (scores * y) < 0
-        gradient = (mask * y * X).sum(dim=0)
-        return gradient
+        score = self.score(X)
+
+        if score * y <= 0: # misclassification -- compute update
+            update = X*y
+            return update[0,:]
+        else: # correct classification -- don't update weights
+            return torch.zeros_like(self.w)
 
 class PerceptronOptimizer:
 
@@ -101,4 +104,6 @@ class PerceptronOptimizer:
         loss = self.model.loss(X, y)
         grad = self.model.grad(X, y) #calculates the gradient of the model's parameters with respect to the loss
         self.model.w += grad
+
+        return loss
     
