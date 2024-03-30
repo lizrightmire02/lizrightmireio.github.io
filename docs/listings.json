@@ -2,6 +2,8 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/midSemesterGoals/index.html",
+      "/posts/Perceptron/index.html",
       "/posts/LimitsToQuantitativeApproach/LimitsToFairness.html",
       "/posts/WomenInDataScience/index.html",
       "/posts/WhoseCosts/index.html",
