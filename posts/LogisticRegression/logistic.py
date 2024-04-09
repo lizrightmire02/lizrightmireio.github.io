@@ -1,3 +1,4 @@
+import math
 import torch
 import numpy as np
 
@@ -48,61 +49,50 @@ class LinearModel:
 
         return y_hat
     
-class Perceptron(LinearModel):
-
-    def loss(self, X, y):
+class LogisticRegression(LinearModel):
+    
+    def loss(self, X,y):
         """
-        Compute the misclassification rate. A point i is classified correctly if it holds that 
-        s_i*y_i_ > 0, where y_i_ is the *modified label* that has values in {-1, 1} (rather than {0, 1}). 
-
-        ARGUMENTS: 
+        Compute empirical risk using logistic loss function 
+        
+        ARGUMENTS:
             X, torch.Tensor: the feature matrix. X.size() == (n, p), 
             where n is the number of data points and p is the 
             number of features. This implementation always assumes 
             that the final column of X is a constant column of 1s. 
+            y, torch.Tensor: target vector, {0,1}. y is shape (n, ).
 
-            y, torch.Tensor: the target vector.  y.size() = (n,). The possible labels for y are {0, 1}
-        
-        HINT: In order to use the math formulas in the lecture, you are going to need to construct a modified 
-        set of targets and predictions that have entries in {-1, 1} -- otherwise none of the formulas will work right! 
-        An easy to to make this conversion is: 
-        
-        y_ = 2*y - 1
+        RETURNS:
+            loss, float: value of the model's loss
         """
-
-        # labels: {-1, 1}
-        y_ = 2 * y - 1
-
-        scores = self.score(X)
-
-        misclassified = (scores * y_ <= 0).float()
-        meanMisclassified = torch.mean(misclassified)
-
-        return meanMisclassified
-
-    def grad(self, X, y):
-
         score = self.score(X)
-
-        if score * y <= 0: # misclassification -- compute update
-            update = X*y
-            return update[0,:]
-        else: # correct classification -- don't update weights
-            return torch.zeros_like(self.w)
-
-class PerceptronOptimizer:
-
-    def __init__(self, model):
-        self.model = model 
+        sigmoid = torch.sigmoid(score)
+        loss = -y * torch.log(sigmoid) - (1-y)*torch.log(1-sigmoid)
+        return torch.mean(loss)
     
-    def step(self, X, y):
+    def grad(self, X, y):
         """
-        Compute one step of the perceptron update using the feature matrix X 
-        and target vector y. 
-        """
-        loss = self.model.loss(X, y)
-        grad = self.model.grad(X, y) #calculates the gradient of the model's parameters with respect to the loss
-        self.model.w += grad
+        Compute the gradient of the empirical risk L(w)
+        
+        ARGUMENTS:
+            X, torch.Tensor: the feature matrix. X.size() == (n, p), 
+            where n is the number of data points and p is the 
+            number of features. This implementation always assumes 
+            that the final column of X is a constant column of 1s. 
+            y, torch.Tensor: target vector, {0,1}. n x 1 dimensional.
 
-        return loss
+        RETURNS:
+            grad, float: 
+        """
+        score = self.score(X)
+        sigmoid = torch.sigmoid(score)
+        g = (sigmoid - y)[:, None]
+        grad = g * X
+        mean = torch.mean(grad, dim = 0)
+        return mean
     
+    def step():
+        
+
+
+
