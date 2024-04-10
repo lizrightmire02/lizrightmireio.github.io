@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/LogisticRegression/index.html",
       "/posts/midSemesterGoals/index.html",
       "/posts/Perceptron/index.html",
       "/posts/LimitsToQuantitativeApproach/LimitsToFairness.html",
