@@ -238,7 +238,9 @@ window.Quarto = {
 
 
 
-<div id="cell-1" class="cell" data-execution_count="464">
+<section id="logistic-regression-implementation" class="level1">
+<h1>Logistic Regression Implementation</h1>
+<div id="cell-2" class="cell" data-execution_count="464">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>load_ext autoreload</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>autoreload <span class="dv">2</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> logistic <span class="im">import</span> LogisticRegression, GradientDescentOptimizer</span>
@@ -251,11 +253,9 @@ window.Quarto = {
   %reload_ext autoreload</code></pre>
 </div>
 </div>
-<section id="logistic-regression-implementation" class="level1">
-<h1>Logistic Regression Implementation</h1>
+<p>Source code for <a href="https://github.com/leftmire/lizrightmireio.github.io/blob/main/posts/LogisticRegression/logistic.py">Logistc.py</a></p>
 <section id="abstract" class="level3">
 <h3 class="anchored" data-anchor-id="abstract">Abstract</h3>
-<p>Source code for <a href="https://github.com/leftmire/lizrightmireio.github.io/blob/main/posts/LogisticRegression/logistic.py">Logistc.py</a></p>
 <p>Logistic Regression is a popular machine learning algorithm most commonly used in classification problems. In this blog post, I will create an object-oriented implementation of Logistic Regression. Then, I will perform a series of experiments to test the efficacy of Logistic Regression in different Scenarios. First I consider vanilla gradient descent, in which the momentum term <span class="math inline">\(\beta\)</span> is set to 0. Next I adjust <span class="math inline">\(\beta\)</span> to a positive, nonzero value to see how introducing momentum into the algorithm allows for faster convergence to the optimal weight vector. Finally, I investigate overfitting in Logistic Regression, seeing how a model can have a training accuracy of 100%, yet only 86% accuracy on a separate, testing dataset.</p>
 </section>
 <section id="experiments" class="level3">
