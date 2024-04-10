@@ -6,6 +6,7 @@ class LinearModel:
 
     def __init__(self):
         self.w = None 
+        self.p_w = None
 
     def score(self, X):
         """
@@ -23,10 +24,12 @@ class LinearModel:
         RETURNS: 
             s torch.Tensor: vector of scores. s.size() = (n,)
         """
+
+        # if weights is empty, return 1d tensor with random numbers
         if self.w is None: 
             self.w = torch.rand((X.size()[1]))
 
-        # your computation here: compute the vector of scores s
+        # matrix multiplication X and weights
         return torch.matmul(X, self.w)
 
     def predict(self, X):
@@ -43,10 +46,12 @@ class LinearModel:
         RETURNS: 
             y_hat, torch.Tensor: vector predictions in {0.0, 1.0}. y_hat.size() = (n,)
         """
+
+        # compute scores
         scores = self.score(X)
 
-        y_hat = 1.0 * (scores >= 0 )
-
+        # yhat = 1 if score >= 0; 1 otherwise
+        y_hat = 1.0 * (scores >= 0)
         return y_hat
     
 class LogisticRegression(LinearModel):
@@ -65,8 +70,11 @@ class LogisticRegression(LinearModel):
         RETURNS:
             loss, float: value of the model's loss
         """
+        # helper definitions
         score = self.score(X)
         sigmoid = torch.sigmoid(score)
+
+        # loss function
         loss = -y * torch.log(sigmoid) - (1-y)*torch.log(1-sigmoid)
         return torch.mean(loss)
     
@@ -84,10 +92,16 @@ class LogisticRegression(LinearModel):
         RETURNS:
             grad, float: 
         """
+
+        # helper definitions
         score = self.score(X)
         sigmoid = torch.sigmoid(score)
-        g = (sigmoid - y)[:, None]
+
+        # gradient loss function
+        g = (sigmoid - y)[:, None] # convert tensor with shape (n,) to shape (n,1)
         grad = g * X
+
+        # return mean gradient
         mean = torch.mean(grad, dim = 0)
         return mean
     
@@ -115,15 +129,14 @@ class GradientDescentOptimizer:
         currentWeight = self.model.w
 
         # If first update, previous update does not exist so just alpha * gradient
-        if self.model.prev_w == None:
+        if self.model.p_w == None:
             self.model.w -= alpha * gradient
-            
-        # all other updates
+
+        # all other updates, compute step
         else:
-            self.model.w = currentWeight -1*alpha*gradient + beta*(currentWeight - self.model.prev_w)
+            self.model.w = currentWeight -1*alpha*gradient + beta*(currentWeight - self.model.p_w)
         
         # update previous weight value
-        self.model.prev_w = currentWeight
+        self.model.p_w = currentWeight
 
-
-
+        return loss
