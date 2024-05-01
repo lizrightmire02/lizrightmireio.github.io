@@ -81,14 +81,31 @@ class Perceptron(LinearModel):
         return meanMisclassified
 
     def grad(self, X, y):
+        '''
+        Compute the gradient of the empirical risk
+        
+        ARGUMENTS: 
+            X, torch.Tensor: the feature matrix. X.size() == (n, p), 
+            where n is the number of data points and p is the 
+            number of features. This implementation always assumes 
+            that the final column of X is a constant column of 1s. 
+            y, torch.Tensor: the target vector.  y.size() = (n,). The possible labels for y are {0, 1}
+
+        RETURNS:
+            grad: float: the gradient of the empirical risk of the model
+        '''
 
         score = self.score(X)
 
-        if score * y <= 0: # misclassification -- compute update
-            update = X*y
-            return update[0,:]
-        else: # correct classification -- don't update weights
-            return torch.zeros_like(self.w)
+        learning_rate = 0.01
+
+        # if misclassified, calculate update
+        misclass = score*y <= 0
+        update_row = X*y[:,None]
+
+        update = update_row * misclass[:,None]
+        
+        r = learning_rate * torch.mean(update, 0)
 
 class PerceptronOptimizer:
 
@@ -99,6 +116,17 @@ class PerceptronOptimizer:
         """
         Compute one step of the perceptron update using the feature matrix X 
         and target vector y. 
+
+        ARGUMENTS: 
+            X, torch.Tensor: the feature matrix. X.size() == (n, p), 
+            where n is the number of data points and p is the 
+            number of features. This implementation always assumes 
+            that the final column of X is a constant column of 1s. 
+            y, torch.Tensor: the target vector.  y.size() = (n,). The possible labels for y are {0, 1}
+            alpha: float: learning rate of model
+            beta: float: momentum of model
+        RETURNS:
+            loss: float: the empirical risk
         """
         loss = self.model.loss(X, y)
         grad = self.model.grad(X, y) #calculates the gradient of the model's parameters with respect to the loss
