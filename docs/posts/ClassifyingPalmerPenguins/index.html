@@ -221,7 +221,7 @@ background-size: cover;
 <figcaption>cite: https://education.rstudio.com/blog/2020/07/palmerpenguins-cran/</figcaption>
 </figure>
 </div>
-<p>The Palmer Penguins dataset is a public dataset frequently used within the educational data science community. It contains Dr.&nbsp;Kristen Gorman and the Long Term Ecological Research Network’s observations of hundreds of antartic penguins belonging to 3 species groups: Adelie, Gentoo, and Chinstrap.</p>
+<p>The Palmer Penguins dataset is a public dataset frequently used within the educational data science community. It contains Dr.&nbsp;Kristen Gorman and the Long Term Ecological Research Network’s observations of hundreds of Antartic penguins belonging to 3 species groups: Adelie, Gentoo, and Chinstrap.</p>
 <p>This blog aims to accomplish three goals:</p>
 <ol type="1">
 <li><p>Conduct exploration of the Palmer Penguins dataset</p></li>
@@ -233,10 +233,11 @@ background-size: cover;
 <div id="cell-5" class="cell" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>train_url <span class="op">=</span> <span class="st">"https://raw.githubusercontent.com/PhilChodrow/ml-notes/main/data/palmer-penguins/train.csv"</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>train <span class="op">=</span> pd.read_csv(train_url)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>train[<span class="st">"Species"</span>] <span class="op">=</span> train[<span class="st">"Species"</span>].<span class="bu">str</span>.split().<span class="bu">str</span>.get(<span class="dv">0</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>train.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># import dataset</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>train_url <span class="op">=</span> <span class="st">"https://raw.githubusercontent.com/PhilChodrow/ml-notes/main/data/palmer-penguins/train.csv"</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>train <span class="op">=</span> pd.read_csv(train_url)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>train[<span class="st">"Species"</span>] <span class="op">=</span> train[<span class="st">"Species"</span>].<span class="bu">str</span>.split().<span class="bu">str</span>.get(<span class="dv">0</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>train.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="15">
 <div>
 
@@ -374,20 +375,36 @@ background-size: cover;
 <p>The training data contains 18 observations about 275 penguin subjects. Let’s clean this data by dropping irrelevent columns and one-hot encoding the qualitative observations.</p>
 <div id="cell-7" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> LabelEncoder</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>le <span class="op">=</span> LabelEncoder()</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>le.fit(train[<span class="st">"Species"</span>])</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> prepare_data(df):</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  df <span class="op">=</span> df.drop([<span class="st">"studyName"</span>, <span class="st">"Sample Number"</span>, <span class="st">"Individual ID"</span>, <span class="st">"Date Egg"</span>, <span class="st">"Comments"</span>, <span class="st">"Region"</span>], axis <span class="op">=</span> <span class="dv">1</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  df <span class="op">=</span> df[df[<span class="st">"Sex"</span>] <span class="op">!=</span> <span class="st">"."</span>]</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  df <span class="op">=</span> df.dropna()</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  y <span class="op">=</span> le.transform(df[<span class="st">"Species"</span>])</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  df <span class="op">=</span> df.drop([<span class="st">"Species"</span>], axis <span class="op">=</span> <span class="dv">1</span>)</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  df <span class="op">=</span> pd.get_dummies(df)</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> df, y</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>X_train, y_train <span class="op">=</span> prepare_data(train)</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>X_train</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize label encoder</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>le <span class="op">=</span> LabelEncoder()</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>le.fit(train[<span class="st">"Species"</span>])</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> prepare_data(df):</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">'''Prepare data for model development'''</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># drop extraneous columns</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  df <span class="op">=</span> df.drop([<span class="st">"studyName"</span>, <span class="st">"Sample Number"</span>, <span class="st">"Individual ID"</span>, <span class="st">"Date Egg"</span>, <span class="st">"Comments"</span>, <span class="st">"Region"</span>], axis <span class="op">=</span> <span class="dv">1</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># drop rows with empty "Sex" column</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  df <span class="op">=</span> df[df[<span class="st">"Sex"</span>] <span class="op">!=</span> <span class="st">"."</span>]</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="co"># drop rows with NA values</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  df <span class="op">=</span> df.dropna()</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># label encode Species column</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  y <span class="op">=</span> le.transform(df[<span class="st">"Species"</span>])</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="co"># remove Species column for training set</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  df <span class="op">=</span> df.drop([<span class="st">"Species"</span>], axis <span class="op">=</span> <span class="dv">1</span>)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  <span class="co"># convert categorical variables into indicator variables</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  df <span class="op">=</span> pd.get_dummies(df)</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> df, y</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>X_train, y_train <span class="op">=</span> prepare_data(train)</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>X_train</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="16">
 <div>
 
@@ -679,50 +696,60 @@ dtype: int64</code></pre>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestClassifier</span>
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">'max_colwidth'</span>, <span class="dv">10000</span>)</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>all_qual_cols <span class="op">=</span> [<span class="st">"Clutch Completion"</span>, <span class="st">"Sex"</span>, <span class="st">"Island"</span>, <span class="st">'Stage_Adult, 1 Egg Stage'</span>]</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>all_quant_cols <span class="op">=</span> [<span class="st">'Culmen Length (mm)'</span>, <span class="st">'Culmen Depth (mm)'</span>, <span class="st">'Flipper Length (mm)'</span>, <span class="st">'Body Mass (g)'</span>, <span class="st">'Delta 15 N (o/oo)'</span>, <span class="st">'Delta 13 C (o/oo)'</span> ]</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>columns <span class="op">=</span> [<span class="st">'features'</span>, <span class="st">'model'</span>, <span class="st">'score'</span>]</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># adjust default df column width so that all 3 features appear</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">'max_colwidth'</span>, <span class="dv">10000</span>)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co"># differentiate qualitative and quantitative columns</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>all_qual_cols <span class="op">=</span> [<span class="st">"Clutch Completion"</span>, <span class="st">"Sex"</span>, <span class="st">"Island"</span>, <span class="st">'Stage_Adult, 1 Egg Stage'</span>]</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>all_quant_cols <span class="op">=</span> [<span class="st">'Culmen Length (mm)'</span>, <span class="st">'Culmen Depth (mm)'</span>, <span class="st">'Flipper Length (mm)'</span>, <span class="st">'Body Mass (g)'</span>, <span class="st">'Delta 15 N (o/oo)'</span>, <span class="st">'Delta 13 C (o/oo)'</span> ]</span>
 <span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>score_df <span class="op">=</span> pd.DataFrame(columns <span class="op">=</span> columns)</span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> qual <span class="kw">in</span> all_qual_cols: </span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  qual_cols <span class="op">=</span> [col <span class="cf">for</span> col <span class="kw">in</span> X_train.columns <span class="cf">if</span> qual <span class="kw">in</span> col ]</span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> pair <span class="kw">in</span> combinations(all_quant_cols, <span class="dv">2</span>):</span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    cols <span class="op">=</span> qual_cols <span class="op">+</span> <span class="bu">list</span>(pair)</span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Logistic Regression</span></span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    LR <span class="op">=</span> LogisticRegression(max_iter <span class="op">=</span> <span class="dv">20000000000</span>)</span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>    LR.fit(X_train[cols], y_train)  </span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    LRscore <span class="op">=</span> cross_val_score(LR, X_train[cols], y_train, cv <span class="op">=</span> <span class="dv">5</span>).mean()</span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>    score_df.loc[<span class="bu">len</span>(score_df.index)] <span class="op">=</span> [cols, <span class="st">'Logistic'</span>, LRscore]  </span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Decision Tree</span></span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>    DTC <span class="op">=</span> DecisionTreeClassifier()</span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    param_grid <span class="op">=</span> {<span class="st">'max_depth'</span>: [<span class="dv">11</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>,<span class="dv">10</span>, <span class="va">None</span>]}</span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    grid_search <span class="op">=</span> GridSearchCV(DTC, param_grid, cv <span class="op">=</span> <span class="dv">5</span>)</span>
-<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>    grid_search.fit(X_train[cols], y_train)</span>
-<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    DTCscore <span class="op">=</span> grid_search.best_score_</span>
-<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    score_df.loc[<span class="bu">len</span>(score_df.index)] <span class="op">=</span> [cols, <span class="st">'Decision Tree'</span>, DTCscore]  </span>
-<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Random Forest</span></span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    randomforest <span class="op">=</span> RandomForestClassifier()</span>
-<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    grid_search <span class="op">=</span> GridSearchCV(randomforest, param_grid, cv <span class="op">=</span> <span class="dv">5</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co"># initialize accuracy score df</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>columns <span class="op">=</span> [<span class="st">'features'</span>, <span class="st">'model'</span>, <span class="st">'score'</span>]</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>score_df <span class="op">=</span> pd.DataFrame(columns <span class="op">=</span> columns)</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> qual <span class="kw">in</span> all_qual_cols: </span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># choose a qualitative column</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  qual_cols <span class="op">=</span> [col <span class="cf">for</span> col <span class="kw">in</span> X_train.columns <span class="cf">if</span> qual <span class="kw">in</span> col ]</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># choose 2 quantitative columns</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> pair <span class="kw">in</span> combinations(all_quant_cols, <span class="dv">2</span>):</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    cols <span class="op">=</span> qual_cols <span class="op">+</span> <span class="bu">list</span>(pair)</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>    <span class="co">### Logistic Regression</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    LR <span class="op">=</span> LogisticRegression(max_iter <span class="op">=</span> <span class="dv">20000000000</span>)</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>    LR.fit(X_train[cols], y_train)  </span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    LRscore <span class="op">=</span> cross_val_score(LR, X_train[cols], y_train, cv <span class="op">=</span> <span class="dv">5</span>).mean()</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    score_df.loc[<span class="bu">len</span>(score_df.index)] <span class="op">=</span> [cols, <span class="st">'Logistic'</span>, LRscore]  </span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    <span class="co">### Decision Tree</span></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    DTC <span class="op">=</span> DecisionTreeClassifier()</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>    <span class="co"># perform grid search to find optimal max depth</span></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>    param_grid <span class="op">=</span> {<span class="st">'max_depth'</span>: [<span class="dv">11</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>,<span class="dv">10</span>, <span class="va">None</span>]}</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    <span class="co"># grid search with cross-validation </span></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    grid_search <span class="op">=</span> GridSearchCV(DTC, param_grid, cv <span class="op">=</span> <span class="dv">5</span>)</span>
 <span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>    grid_search.fit(X_train[cols], y_train)</span>
-<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>    RF_score <span class="op">=</span> grid_search.best_score_</span>
-<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    score_df.loc[<span class="bu">len</span>(score_df.index)] <span class="op">=</span> [cols, <span class="st">'Random Forest'</span>, RF_score]</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>    DTCscore <span class="op">=</span> grid_search.best_score_</span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    score_df.loc[<span class="bu">len</span>(score_df.index)] <span class="op">=</span> [cols, <span class="st">'Decision Tree'</span>, DTCscore]  </span>
 <span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>    <span class="co"># SVM</span></span>
-<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>    param_grid <span class="op">=</span> {<span class="st">'gamma'</span>: <span class="fl">10.0</span><span class="op">**</span>np.arange(<span class="op">-</span><span class="dv">5</span>, <span class="dv">5</span>)}</span>
-<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>    SVC_model <span class="op">=</span> SVC()</span>
-<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>    grid_search <span class="op">=</span> GridSearchCV(SVC_model, param_grid, cv <span class="op">=</span> <span class="dv">5</span>)</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>    <span class="co">### Random Forest</span></span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>    randomforest <span class="op">=</span> RandomForestClassifier()</span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>    <span class="co"># cross validation for optimal max depth, with cross-validation</span></span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>    grid_search <span class="op">=</span> GridSearchCV(randomforest, param_grid, cv <span class="op">=</span> <span class="dv">5</span>)</span>
 <span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>    grid_search.fit(X_train[cols], y_train)</span>
-<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>    SVMscore <span class="op">=</span> grid_search.best_score_</span>
-<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>    score_df.loc[<span class="bu">len</span>(score_df.index)] <span class="op">=</span> [cols, <span class="st">"SVM"</span>, SVMscore]</span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>    RF_score <span class="op">=</span> grid_search.best_score_</span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>    score_df.loc[<span class="bu">len</span>(score_df.index)] <span class="op">=</span> [cols, <span class="st">'Random Forest'</span>, RF_score]</span>
 <span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>score_df.sort_values(by<span class="op">=</span><span class="st">'score'</span>, ascending<span class="op">=</span><span class="va">False</span>).head(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>    <span class="co">### SVM</span></span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>    param_grid <span class="op">=</span> {<span class="st">'gamma'</span>: <span class="fl">10.0</span><span class="op">**</span>np.arange(<span class="op">-</span><span class="dv">5</span>, <span class="dv">5</span>)}</span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>    SVC_model <span class="op">=</span> SVC()</span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>    <span class="co"># perform grid search for optimal gamma value, with cross-validation</span></span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>    grid_search <span class="op">=</span> GridSearchCV(SVC_model, param_grid, cv <span class="op">=</span> <span class="dv">5</span>)</span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>    grid_search.fit(X_train[cols], y_train)</span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>    SVMscore <span class="op">=</span> grid_search.best_score_</span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>    score_df.loc[<span class="bu">len</span>(score_df.index)] <span class="op">=</span> [cols, <span class="st">"SVM"</span>, SVMscore]</span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a><span class="co"># print out results df, sorted by accuracy "score"</span></span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>score_df.sort_values(by<span class="op">=</span><span class="st">'score'</span>, ascending<span class="op">=</span><span class="va">False</span>).head(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="20">
 <div>
 
@@ -883,25 +910,24 @@ Please also refer to the documentation for alternative solver options:
 <span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>      p <span class="op">=</span> model.predict(XY)</span>
 <span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>      p <span class="op">=</span> p.reshape(xx.shape)</span>
 <span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>      <span class="co"># use contour plot to visualize the predictions</span></span>
-<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>      axarr[i].contourf(xx, yy, p, cmap <span class="op">=</span> <span class="st">"jet"</span>, alpha <span class="op">=</span> <span class="fl">0.2</span>, vmin <span class="op">=</span> <span class="dv">0</span>, vmax <span class="op">=</span> <span class="dv">2</span>)</span>
-<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>      ix <span class="op">=</span> X[qual_features[i]] <span class="op">==</span> <span class="dv">1</span></span>
-<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>      <span class="co"># plot the data</span></span>
-<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>      axarr[i].scatter(x0[ix], x1[ix], c <span class="op">=</span> y[ix], cmap <span class="op">=</span> <span class="st">"jet"</span>, vmin <span class="op">=</span> <span class="dv">0</span>, vmax <span class="op">=</span> <span class="dv">2</span>)</span>
-<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>      axarr[i].<span class="bu">set</span>(xlabel <span class="op">=</span> X.columns[<span class="dv">0</span>], </span>
-<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>            ylabel  <span class="op">=</span> X.columns[<span class="dv">1</span>], </span>
-<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>            title <span class="op">=</span> qual_features[i])</span>
-<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>      patches <span class="op">=</span> []</span>
-<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> color, spec <span class="kw">in</span> <span class="bu">zip</span>([<span class="st">"red"</span>, <span class="st">"green"</span>, <span class="st">"blue"</span>], [<span class="st">"Adelie"</span>, <span class="st">"Chinstrap"</span>, <span class="st">"Gentoo"</span>]):</span>
-<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a>        patches.append(Patch(color <span class="op">=</span> color, label <span class="op">=</span> spec))</span>
-<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>      plt.legend(title <span class="op">=</span> <span class="st">"Species"</span>, handles <span class="op">=</span> patches, loc <span class="op">=</span> <span class="st">"best"</span>)</span>
-<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>      plt.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>      <span class="co"># use contour plot to visualize the predictions</span></span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>      axarr[i].contourf(xx, yy, p, cmap <span class="op">=</span> <span class="st">"jet"</span>, alpha <span class="op">=</span> <span class="fl">0.2</span>, vmin <span class="op">=</span> <span class="dv">0</span>, vmax <span class="op">=</span> <span class="dv">2</span>)</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>      ix <span class="op">=</span> X[qual_features[i]] <span class="op">==</span> <span class="dv">1</span></span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>      <span class="co"># plot the data</span></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>      axarr[i].scatter(x0[ix], x1[ix], c <span class="op">=</span> y[ix], cmap <span class="op">=</span> <span class="st">"jet"</span>, vmin <span class="op">=</span> <span class="dv">0</span>, vmax <span class="op">=</span> <span class="dv">2</span>)</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>      axarr[i].<span class="bu">set</span>(xlabel <span class="op">=</span> X.columns[<span class="dv">0</span>], </span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>            ylabel  <span class="op">=</span> X.columns[<span class="dv">1</span>], </span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>            title <span class="op">=</span> qual_features[i])</span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>      patches <span class="op">=</span> []</span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> color, spec <span class="kw">in</span> <span class="bu">zip</span>([<span class="st">"red"</span>, <span class="st">"green"</span>, <span class="st">"blue"</span>], [<span class="st">"Adelie"</span>, <span class="st">"Chinstrap"</span>, <span class="st">"Gentoo"</span>]):</span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>        patches.append(Patch(color <span class="op">=</span> color, label <span class="op">=</span> spec))</span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>      plt.legend(title <span class="op">=</span> <span class="st">"Species"</span>, handles <span class="op">=</span> patches, loc <span class="op">=</span> <span class="st">"best"</span>)</span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>      plt.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>For the training data:</p>
 <div id="cell-29" class="cell" data-execution_count="24">
@@ -932,13 +958,13 @@ Please also refer to the documentation for alternative solver options:
 <div id="cell-34" class="cell" data-execution_count="26">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> confusion_matrix</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co">#actual</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co">#predicted</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"># guesses for each data</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>y_test_pred <span class="op">=</span> LR.predict(X_test[optimal_features]) </span>
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>y_test_pred <span class="op">=</span> LR.predict(X_test[optimal_features]) <span class="co"># guesses for each data</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>cm <span class="op">=</span> confusion_matrix(y_test, y_test_pred)</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co"># confusion matrix</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>cm <span class="op">=</span> confusion_matrix(y_test, y_test_pred)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co"># print confusion matrix results</span></span>
 <span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">3</span>):</span>
 <span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">3</span>):</span>
 <span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"There were </span><span class="sc">{</span>cm[i,j]<span class="sc">}</span><span class="ss"> </span><span class="sc">{</span>le<span class="sc">.</span>classes_[i]<span class="sc">}</span><span class="ss"> penguin(s) who were classified as </span><span class="sc">{</span>le<span class="sc">.</span>classes_[j]<span class="sc">}</span><span class="ss">."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -972,6 +998,12 @@ There were 26 Gentoo penguin(s) who were classified as Gentoo.</code></pre>
 </div>
 </div>
 </div>
+</section>
+<section id="discussion" class="level3">
+<h3 class="anchored" data-anchor-id="discussion">Discussion</h3>
+<p>In this blog post, I aimed to explore the popular Palmer Penguins dataset and build a classification model that could correctly determine the species of every penguin in unseen data. In accomplishing these goals, I created two new visualizations and summary table, developing skills using pandas functions and matplotlib. I also practiced selecting features for a model by testing feature combinations on 4 model types – logistic regression, decision tree, random forest, and SVM. I optimized each model using cross validation and grid search for optimal hyperparameters, and evaluated each model based on accuracy.</p>
+<p>Once I had settled on the best features and best model type, I evaluated my model on unseen testing data and achieved the desired result – 100% classification accuracy! I created and interperated a confusion matrix, which corroborated my high accuracy result.</p>
+<p>The skills I learned in this blog post will surely serve me well as I move into understanding and developing more complex models.</p>
 
 
 </section>
