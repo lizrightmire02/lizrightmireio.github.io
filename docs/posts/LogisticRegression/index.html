@@ -240,7 +240,7 @@ window.Quarto = {
 
 <section id="logistic-regression-implementation" class="level1">
 <h1>Logistic Regression Implementation</h1>
-<div id="cell-2" class="cell" data-execution_count="464">
+<div id="cell-2" class="cell" data-execution_count="39">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>load_ext autoreload</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>autoreload <span class="dv">2</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> logistic <span class="im">import</span> LogisticRegression, GradientDescentOptimizer</span>
@@ -256,7 +256,7 @@ window.Quarto = {
 <p>Source code for <a href="https://github.com/leftmire/lizrightmireio.github.io/blob/main/posts/LogisticRegression/logistic.py">Logistc.py</a></p>
 <section id="abstract" class="level3">
 <h3 class="anchored" data-anchor-id="abstract">Abstract</h3>
-<p>Logistic Regression is a popular machine learning algorithm most commonly used in classification problems. In this blog post, I will create an object-oriented implementation of Logistic Regression. Then, I will perform a series of experiments to test the efficacy of Logistic Regression in different Scenarios. First I consider vanilla gradient descent, in which the momentum term <span class="math inline">\(\beta\)</span> is set to 0. Next I adjust <span class="math inline">\(\beta\)</span> to a positive, nonzero value to see how introducing momentum into the algorithm allows for faster convergence to the optimal weight vector. Finally, I investigate overfitting in Logistic Regression, seeing how a model can have a training accuracy of 100%, yet only 86% accuracy on a separate, testing dataset.</p>
+<p>Logistic Regression is a popular machine learning algorithm most commonly used in classification problems. In this blog post, I will create an object-oriented implementation of Logistic Regression. Then, I will perform a series of experiments to test the efficacy of Logistic Regression in different scenarios. First I consider vanilla gradient descent, in which the momentum term <span class="math inline">\(\beta\)</span> is set to 0. Next I adjust <span class="math inline">\(\beta\)</span> to a positive, nonzero value to see how introducing momentum into the algorithm allows for faster convergence. Finally, I investigate overfitting in Logistic Regression, seeing how a model can have a training accuracy of 100%, yet only 86% accuracy on a separate, testing dataset.</p>
 </section>
 <section id="experiments" class="level3">
 <h3 class="anchored" data-anchor-id="experiments">Experiments</h3>
@@ -266,7 +266,7 @@ window.Quarto = {
 <p>To begin, I will implement “vanilla” gradient descent, in which the momentum term, <span class="math inline">\(\beta\)</span>, is 0. Referring to the equation below, setting <span class="math inline">\(\beta\)</span> to 0 cancels out the last term. The step in the gradient descent algorithm is computed as <span class="math inline">\(\alpha\)</span> * the gradient of the loss function.<br>
 $_{k+1} _k - L(_k) + (<em>k - </em>{k-1}) $</p>
 <p>First, define functions to generate and plot our classification data, and one to draw the decision boundary we’ll find next.</p>
-<div id="cell-10" class="cell" data-execution_count="465">
+<div id="cell-10" class="cell" data-execution_count="40">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># generate data for classification problem</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> classification_data(n_points <span class="op">=</span> <span class="dv">300</span>, noise <span class="op">=</span> <span class="fl">0.2</span>, p_dims <span class="op">=</span> <span class="dv">2</span>):   </span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> torch.arange(n_points) <span class="op">&gt;=</span> <span class="bu">int</span>(n_points<span class="op">/</span><span class="dv">2</span>)</span>
@@ -275,7 +275,7 @@ $_{k+1} _k - L(_k) + (<em>k - </em>{k-1}) $</p>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> torch.cat((X, torch.ones((X.shape[<span class="dv">0</span>], <span class="dv">1</span>))), <span class="dv">1</span>)</span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> X, y</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="cell-11" class="cell" data-execution_count="466">
+<div id="cell-11" class="cell" data-execution_count="41">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># function to plot classification data</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plotter(X, y, ax):</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> X.shape[<span class="dv">1</span>] <span class="op">==</span> <span class="dv">3</span>, <span class="st">"This function only works for data created with p_dims == 2"</span></span>
@@ -287,7 +287,7 @@ $_{k+1} _k - L(_k) + (<em>k - </em>{k-1}) $</p>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        ax.scatter(X[ix,<span class="dv">0</span>], X[ix,<span class="dv">1</span>], s <span class="op">=</span> <span class="dv">20</span>,  c <span class="op">=</span> y[ix], facecolors <span class="op">=</span> <span class="st">"none"</span>, edgecolors <span class="op">=</span> <span class="st">"darkgrey"</span>, cmap <span class="op">=</span> <span class="st">"jet"</span>, vmin <span class="op">=</span> <span class="op">-</span><span class="dv">2</span>, vmax <span class="op">=</span> <span class="dv">2</span>, alpha <span class="op">=</span> <span class="fl">0.5</span>, marker <span class="op">=</span> markers[i])</span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    ax.<span class="bu">set</span>(xlabel <span class="op">=</span> <span class="vs">r"$x_1$"</span>, ylabel <span class="op">=</span> <span class="vs">r"$x_2$"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="cell-12" class="cell" data-execution_count="467">
+<div id="cell-12" class="cell" data-execution_count="42">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># function to draw decision boundary</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> draw_line(w, x_min, x_max, ax, <span class="op">**</span>kwargs):</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    w_ <span class="op">=</span> w.flatten()</span>
@@ -296,7 +296,7 @@ $_{k+1} _k - L(_k) + (<em>k - </em>{k-1}) $</p>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    l <span class="op">=</span> ax.plot(x, y, <span class="op">**</span>kwargs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Plot the classification data we’ll work with</p>
-<div id="cell-14" class="cell" data-execution_count="468">
+<div id="cell-14" class="cell" data-execution_count="43">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>X, y <span class="op">=</span> classification_data(noise <span class="op">=</span> <span class="fl">0.2</span>)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>,<span class="dv">1</span>)</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>plotter(X,y,ax)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -310,7 +310,7 @@ $_{k+1} _k - L(_k) + (<em>k - </em>{k-1}) $</p>
 </div>
 <p>We have two distinct classes of points, and our goal is to find a decision boundary between them.</p>
 <p>We can now train our logistic model and follow our progress by plotting the loss vs.&nbsp;the current iteration. We’ll save the final weight vector before the loop terminates to plot the decision boundary.</p>
-<div id="cell-17" class="cell" data-execution_count="469">
+<div id="cell-17" class="cell" data-execution_count="44">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># initialize an instance of Logistic Regression </span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>LR <span class="op">=</span> LogisticRegression() </span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>opt <span class="op">=</span> GradientDescentOptimizer(LR)</span>
@@ -319,7 +319,7 @@ $_{k+1} _k - L(_k) + (<em>k - </em>{k-1}) $</p>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>loss_vec <span class="op">=</span> []</span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># training loop</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">600</span>):</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1500</span>):</span>
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># for vanilla gradient descent, alpha must be sufficiently small and beta must be 0</span></span>
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    opt.step(X, y, alpha <span class="op">=</span> <span class="fl">0.3</span>, beta <span class="op">=</span> <span class="dv">0</span>)</span>
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    loss <span class="op">=</span> LR.loss(X, y).item()</span>
@@ -343,7 +343,7 @@ $_{k+1} _k - L(_k) + (<em>k - </em>{k-1}) $</p>
 </div>
 </div>
 </div>
-<div id="cell-18" class="cell" data-execution_count="470">
+<div id="cell-18" class="cell" data-execution_count="45">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot decision boundary</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>,<span class="dv">1</span>)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>plotter(X, y, ax)</span>
@@ -360,30 +360,38 @@ $_{k+1} _k - L(_k) + (<em>k - </em>{k-1}) $</p>
 </section>
 <section id="benefits-of-momentum" class="level3">
 <h3 class="anchored" data-anchor-id="benefits-of-momentum">Benefits of Momentum</h3>
-<p>Vanilla gradient descent was very effective, but we can do better. Adjusting the momentum term <span class="math inline">\(\beta\)</span> to a value other than 0 allows gradient descent to converge to the correct weight vector in fewer iterations.</p>
+<p>Vanilla gradient descent was very effective, but we can do better. Adjusting the momentum term <span class="math inline">\(\beta\)</span> to a value other than 0 allows gradient descent to converge in fewer iterations.</p>
 <p>$_{k+1} _k - L(_k) + (<em>k - </em>{k-1}) $</p>
 <p>Now that <span class="math inline">\(\beta\)</span> is not 0, The final term, or momentum term, is factored into the step calculation. The size of the difference between the current weights and previous iteration’s weights have an impact on the size of the step.</p>
 <p>Let’s prove this to ourselves.</p>
 <p>Train a logistic regression model with <span class="math inline">\(\beta\)</span> = 0.9</p>
-<div id="cell-23" class="cell" data-execution_count="471">
+<div id="cell-23" class="cell" data-execution_count="53">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># initialize an instance of Logistic Regression </span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>LR <span class="op">=</span> LogisticRegression() </span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>opt <span class="op">=</span> GradientDescentOptimizer(LR)</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"># initialize for main loop</span></span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>loss_vec <span class="op">=</span> []</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co"># training loop</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">600</span>):</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># for vanilla gradient descent, alpha must be sufficiently small and beta must be 0</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    opt.step(X, y, alpha <span class="op">=</span> <span class="fl">0.3</span>, beta <span class="op">=</span> <span class="fl">0.9</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>loss_vec_momentum <span class="op">=</span> []</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"># training loop -- beta = 0</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1500</span>):</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    opt.step(X, y, alpha <span class="op">=</span> <span class="fl">0.3</span>, beta <span class="op">=</span> <span class="dv">0</span>)</span>
 <span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    loss <span class="op">=</span> LR.loss(X, y).item()</span>
 <span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    loss_vec.append(loss)</span>
 <span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co"># save final weights for graphing decision boundary</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>final_weights <span class="op">=</span> LR.w</span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>plot_loss(loss_vec, <span class="st">"red"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co"># training loop -- momentum beta = 0.9</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1500</span>):</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># adjust momentum term</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    opt.step(X, y, alpha <span class="op">=</span> <span class="fl">0.3</span>, beta <span class="op">=</span> <span class="fl">0.9</span>)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    loss <span class="op">=</span> LR.loss(X, y).item()</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    loss_vec_momentum.append(loss)</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co"># save final weights for graphing decision boundary</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>final_weights <span class="op">=</span> LR.w</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>plot_loss(loss_vec_momentum, <span class="st">"red"</span>)</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>plot_loss(loss_vec, <span class="st">"green"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -392,18 +400,18 @@ $_{k+1} _k - L(_k) + (<em>k - </em>{k-1}) $</p>
 </div>
 </div>
 </div>
-<p>Comparing this graph to the one previous, we see significant improvements. With momentum, it takes just 100 iterations for the loss to near zero.</p>
+<p>The green line represents vanilla gradient descent, whereas the red line is gradient descent with momentum. With momentum, we see significant improvements – the initial loss is much lower, and the loss stays lower than vanilla gradient descent for each iteration up until 1,500.</p>
 </section>
 <section id="overfitting" class="level3">
 <h3 class="anchored" data-anchor-id="overfitting">Overfitting</h3>
 <p>Logistic Regression models have the tendency to overfit. Let’s explore this pattern.</p>
 <p>Generate train and test data where p_dim &gt; n_points.</p>
-<div id="cell-28" class="cell" data-execution_count="472">
+<div id="cell-28" class="cell" data-execution_count="47">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>X_train, y_train <span class="op">=</span> classification_data(n_points <span class="op">=</span> <span class="dv">50</span>, noise <span class="op">=</span> <span class="fl">0.5</span>, p_dims <span class="op">=</span> <span class="dv">100</span>)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>X_test, y_test <span class="op">=</span> classification_data(n_points <span class="op">=</span> <span class="dv">50</span>, noise <span class="op">=</span> <span class="fl">0.5</span>, p_dims <span class="op">=</span> <span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Fit the model on the training data</p>
-<div id="cell-30" class="cell" data-execution_count="473">
+<div id="cell-30" class="cell" data-execution_count="48">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># initialize an instance of Logistic Regression </span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>LR <span class="op">=</span> LogisticRegression() </span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>opt <span class="op">=</span> GradientDescentOptimizer(LR)</span>
@@ -413,22 +421,24 @@ $_{k+1} _k - L(_k) + (<em>k - </em>{k-1}) $</p>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co"># training loop</span></span>
 <span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">100</span>):</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    opt.step(X_train, y_train, alpha <span class="op">=</span> <span class="fl">0.3</span>, beta <span class="op">=</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    opt.step(X_train, y_train, alpha <span class="op">=</span> <span class="fl">0.3</span>, beta <span class="op">=</span> <span class="dv">0</span>)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>final_weights <span class="op">=</span> LR.w</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We obtain an accuracy of 100% on the training data. This should raise concern that we may have oveffit!</p>
-<div id="cell-32" class="cell" data-execution_count="474">
+<div id="cell-32" class="cell" data-execution_count="49">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Accuracy on training data</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>(<span class="fl">1.0</span><span class="op">*</span>(LR.predict(X_train) <span class="op">==</span> y_train)).mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="474">
+<div class="cell-output cell-output-display" data-execution_count="49">
 <pre><code>tensor(1.)</code></pre>
 </div>
 </div>
 <p>Indeed, accuracy is much lower – 0.84 – on the testing data.</p>
-<div id="cell-34" class="cell" data-execution_count="475">
+<div id="cell-34" class="cell" data-execution_count="50">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Accuracy on testing data</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>(<span class="fl">1.0</span><span class="op">*</span>(LR.predict(X_test) <span class="op">==</span> y_test)).mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="475">
-<pre><code>tensor(0.8400)</code></pre>
+<div class="cell-output cell-output-display" data-execution_count="50">
+<pre><code>tensor(0.9000)</code></pre>
 </div>
 </div>
 </section>
