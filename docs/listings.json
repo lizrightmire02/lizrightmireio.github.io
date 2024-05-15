@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/FinalReflection/index.html",
       "/posts/MusicClassification/index.html",
       "/posts/LogisticRegression/index.html",
       "/posts/midSemesterGoals/index.html",
