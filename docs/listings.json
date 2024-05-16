@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/CancerFinalProject/index.html",
       "/posts/FinalReflection/index.html",
       "/posts/MusicClassification/index.html",
       "/posts/LogisticRegression/index.html",
