@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.549">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Liz Rightmire">
+<meta name="dcterms.date" content="2024-05-08">
+<meta name="description" content="Utilizing Neural Networks to Classify Song Genre">
+
+<title>Liz’s CSCI 0451 Blog - Deep Music Genre Classification</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>
+
+      .quarto-title-block .quarto-title-banner h1,
+      .quarto-title-block .quarto-title-banner h2,
+      .quarto-title-block .quarto-title-banner h3,
+      .quarto-title-block .quarto-title-banner h4,
+      .quarto-title-block .quarto-title-banner h5,
+      .quarto-title-block .quarto-title-banner h6
+      {
+        color: white;
+      }
+
+      .quarto-title-block .quarto-title-banner {
+        color: white;
+background-image: url(../../img/landscape.png);
+background-size: cover;
+      }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Liz’s CSCI 0451 Blog</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Deep Music Genre Classification</h1>
+                  <div>
+        <div class="description">
+          Utilizing Neural Networks to Classify Song Genre
+        </div>
+      </div>
+                </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Liz Rightmire </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">May 8, 2024</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<section id="deep-music-classification" class="level1">
+<h1>Deep Music Classification</h1>
+<section id="introduction" class="level3">
+<h3 class="anchored" data-anchor-id="introduction">Introduction</h3>
+<p>Like most of the population, I listen to music every day: when I’m in the shower, when I’m walking to class, or when I want to process a specific emotion. I enjoy a variety of different genres, especially pop and country. If you played me a pop or country song, I don’t think I’d have a challenge classifying it as one of the two. Genres of music tend to have similar word choice in the lyrics, similar levels of “upbeat-ness,” similar content matters.</p>
+<p>In this blog post, I will use Torch to predict the genre of a song based on the track’s lyrics and engineered features.</p>
+<p>I will create three neural networks using torch and train them, evaluating each one using unseen validation data.</p>
+<p>The first neural network will only use the song lyrics, the second will use engineered features, such as ‘family/gospel’, ‘romantic’, and ‘obscene,’ which contain numerical ratings of how these content matters apply to the song. My third network will use both the lyrics and the engineered features.</p>
+<p>Finally, I will investigate the word embeddings learned by my models and consider what biases my model has learned based on songs’ content.</p>
+</section>
+<section id="data-preparation" class="level3">
+<h3 class="anchored" data-anchor-id="data-preparation">Data Preparation</h3>
+<p>Load in dataset. We have 31 observations of 28372 songs.</p>
+<div id="cell-6" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torchtext.data.utils <span class="im">import</span> get_tokenizer</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torchtext.vocab <span class="im">import</span> build_vocab_from_iterator</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">"https://raw.githubusercontent.com/PhilChodrow/PIC16B/master/datasets/tcc_ceds_music.csv"</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(url)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>df.head(<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Unnamed: 0</th>
+<th data-quarto-table-cell-role="th">artist_name</th>
+<th data-quarto-table-cell-role="th">track_name</th>
+<th data-quarto-table-cell-role="th">release_date</th>
+<th data-quarto-table-cell-role="th">genre</th>
+<th data-quarto-table-cell-role="th">lyrics</th>
+<th data-quarto-table-cell-role="th">len</th>
+<th data-quarto-table-cell-role="th">dating</th>
+<th data-quarto-table-cell-role="th">violence</th>
+<th data-quarto-table-cell-role="th">world/life</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">sadness</th>
+<th data-quarto-table-cell-role="th">feelings</th>
+<th data-quarto-table-cell-role="th">danceability</th>
+<th data-quarto-table-cell-role="th">loudness</th>
+<th data-quarto-table-cell-role="th">acousticness</th>
+<th data-quarto-table-cell-role="th">instrumentalness</th>
+<th data-quarto-table-cell-role="th">valence</th>
+<th data-quarto-table-cell-role="th">energy</th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">age</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>0</td>
+<td>mukesh</td>
+<td>mohabbat bhi jhoothi</td>
+<td>1950</td>
+<td>pop</td>
+<td>hold time feel break feel untrue convince spea...</td>
+<td>95</td>
+<td>0.000598</td>
+<td>0.063746</td>
+<td>0.000598</td>
+<td>...</td>
+<td>0.380299</td>
+<td>0.117175</td>
+<td>0.357739</td>
+<td>0.454119</td>
+<td>0.997992</td>
+<td>0.901822</td>
+<td>0.339448</td>
+<td>0.137110</td>
+<td>sadness</td>
+<td>1.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>4</td>
+<td>frankie laine</td>
+<td>i believe</td>
+<td>1950</td>
+<td>pop</td>
+<td>believe drop rain fall grow believe darkest ni...</td>
+<td>51</td>
+<td>0.035537</td>
+<td>0.096777</td>
+<td>0.443435</td>
+<td>...</td>
+<td>0.001284</td>
+<td>0.001284</td>
+<td>0.331745</td>
+<td>0.647540</td>
+<td>0.954819</td>
+<td>0.000002</td>
+<td>0.325021</td>
+<td>0.263240</td>
+<td>world/life</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>6</td>
+<td>johnnie ray</td>
+<td>cry</td>
+<td>1950</td>
+<td>pop</td>
+<td>sweetheart send letter goodbye secret feel bet...</td>
+<td>24</td>
+<td>0.002770</td>
+<td>0.002770</td>
+<td>0.002770</td>
+<td>...</td>
+<td>0.002770</td>
+<td>0.225422</td>
+<td>0.456298</td>
+<td>0.585288</td>
+<td>0.840361</td>
+<td>0.000000</td>
+<td>0.351814</td>
+<td>0.139112</td>
+<td>music</td>
+<td>1.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>10</td>
+<td>pérez prado</td>
+<td>patricia</td>
+<td>1950</td>
+<td>pop</td>
+<td>kiss lips want stroll charm mambo chacha merin...</td>
+<td>54</td>
+<td>0.048249</td>
+<td>0.001548</td>
+<td>0.001548</td>
+<td>...</td>
+<td>0.225889</td>
+<td>0.001548</td>
+<td>0.686992</td>
+<td>0.744404</td>
+<td>0.083935</td>
+<td>0.199393</td>
+<td>0.775350</td>
+<td>0.743736</td>
+<td>romantic</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>12</td>
+<td>giorgos papadopoulos</td>
+<td>apopse eida oneiro</td>
+<td>1950</td>
+<td>pop</td>
+<td>till darling till matter know till dream live ...</td>
+<td>48</td>
+<td>0.001350</td>
+<td>0.001350</td>
+<td>0.417772</td>
+<td>...</td>
+<td>0.068800</td>
+<td>0.001350</td>
+<td>0.291671</td>
+<td>0.646489</td>
+<td>0.975904</td>
+<td>0.000246</td>
+<td>0.597073</td>
+<td>0.394375</td>
+<td>romantic</td>
+<td>1.0</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 31 columns</p>
+</div>
+</div>
+</div>
+<p>There are 7 genres we’ll classify into.</p>
+<div id="cell-8" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># how many genres?</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"genre"</span>].unique()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>array(['pop', 'country', 'blues', 'jazz', 'reggae', 'rock', 'hip hop'],
+      dtype=object)</code></pre>
+</div>
+</div>
+<p>Label encode the genres</p>
+<div id="cell-10" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># assign label to genre</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>genres <span class="op">=</span> {</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pop"</span>: <span class="dv">0</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"country"</span> : <span class="dv">1</span>, </span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"blues"</span>: <span class="dv">2</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"jazz"</span>: <span class="dv">3</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"reggae"</span>: <span class="dv">4</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"rock"</span>: <span class="dv">5</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"hip hop"</span>: <span class="dv">6</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"genre"</span>] <span class="op">=</span> df[<span class="st">"genre"</span>].<span class="bu">apply</span>(genres.get)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>df.head(<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Unnamed: 0</th>
+<th data-quarto-table-cell-role="th">artist_name</th>
+<th data-quarto-table-cell-role="th">track_name</th>
+<th data-quarto-table-cell-role="th">release_date</th>
+<th data-quarto-table-cell-role="th">genre</th>
+<th data-quarto-table-cell-role="th">lyrics</th>
+<th data-quarto-table-cell-role="th">len</th>
+<th data-quarto-table-cell-role="th">dating</th>
+<th data-quarto-table-cell-role="th">violence</th>
+<th data-quarto-table-cell-role="th">world/life</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">sadness</th>
+<th data-quarto-table-cell-role="th">feelings</th>
+<th data-quarto-table-cell-role="th">danceability</th>
+<th data-quarto-table-cell-role="th">loudness</th>
+<th data-quarto-table-cell-role="th">acousticness</th>
+<th data-quarto-table-cell-role="th">instrumentalness</th>
+<th data-quarto-table-cell-role="th">valence</th>
+<th data-quarto-table-cell-role="th">energy</th>
+<th data-quarto-table-cell-role="th">topic</th>
+<th data-quarto-table-cell-role="th">age</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>0</td>
+<td>mukesh</td>
+<td>mohabbat bhi jhoothi</td>
+<td>1950</td>
+<td>0</td>
+<td>hold time feel break feel untrue convince spea...</td>
+<td>95</td>
+<td>0.000598</td>
+<td>0.063746</td>
+<td>0.000598</td>
+<td>...</td>
+<td>0.380299</td>
+<td>0.117175</td>
+<td>0.357739</td>
+<td>0.454119</td>
+<td>0.997992</td>
+<td>0.901822</td>
+<td>0.339448</td>
+<td>0.137110</td>
+<td>sadness</td>
+<td>1.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>4</td>
+<td>frankie laine</td>
+<td>i believe</td>
+<td>1950</td>
+<td>0</td>
+<td>believe drop rain fall grow believe darkest ni...</td>
+<td>51</td>
+<td>0.035537</td>
+<td>0.096777</td>
+<td>0.443435</td>
+<td>...</td>
+<td>0.001284</td>
+<td>0.001284</td>
+<td>0.331745</td>
+<td>0.647540</td>
+<td>0.954819</td>
+<td>0.000002</td>
+<td>0.325021</td>
+<td>0.263240</td>
+<td>world/life</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>6</td>
+<td>johnnie ray</td>
+<td>cry</td>
+<td>1950</td>
+<td>0</td>
+<td>sweetheart send letter goodbye secret feel bet...</td>
+<td>24</td>
+<td>0.002770</td>
+<td>0.002770</td>
+<td>0.002770</td>
+<td>...</td>
+<td>0.002770</td>
+<td>0.225422</td>
+<td>0.456298</td>
+<td>0.585288</td>
+<td>0.840361</td>
+<td>0.000000</td>
+<td>0.351814</td>
+<td>0.139112</td>
+<td>music</td>
+<td>1.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>10</td>
+<td>pérez prado</td>
+<td>patricia</td>
+<td>1950</td>
+<td>0</td>
+<td>kiss lips want stroll charm mambo chacha merin...</td>
+<td>54</td>
+<td>0.048249</td>
+<td>0.001548</td>
+<td>0.001548</td>
+<td>...</td>
+<td>0.225889</td>
+<td>0.001548</td>
+<td>0.686992</td>
+<td>0.744404</td>
+<td>0.083935</td>
+<td>0.199393</td>
+<td>0.775350</td>
+<td>0.743736</td>
+<td>romantic</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>12</td>
+<td>giorgos papadopoulos</td>
+<td>apopse eida oneiro</td>
+<td>1950</td>
+<td>0</td>
+<td>till darling till matter know till dream live ...</td>
+<td>48</td>
+<td>0.001350</td>
+<td>0.001350</td>
+<td>0.417772</td>
+<td>...</td>
+<td>0.068800</td>
+<td>0.001350</td>
+<td>0.291671</td>
+<td>0.646489</td>
+<td>0.975904</td>
+<td>0.000246</td>
+<td>0.597073</td>
+<td>0.394375</td>
+<td>romantic</td>
+<td>1.0</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 31 columns</p>
+</div>
+</div>
+</div>
+<p>What would be the baseline accuracy for our model?</p>
+<div id="cell-12" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># baseline accuracy</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>df.groupby(<span class="st">"genre"</span>).size() <span class="op">/</span> <span class="bu">len</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>genre
+0    0.248202
+1    0.191915
+2    0.162273
+3    0.135521
+4    0.088045
+5    0.142182
+6    0.031862
+dtype: float64</code></pre>
+</div>
+</div>
+<p>If our model always predicts a song to be pop, it would achieve 24% accuracy. Let’s see if we can beat this using neural networks.</p>
+</section>
+<section id="neural-network-1-lyrics" class="level3">
+<h3 class="anchored" data-anchor-id="neural-network-1-lyrics">Neural Network 1: Lyrics</h3>
+<p>This class allows us to retrieve the lyrics from the data frame</p>
+<div id="cell-16" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch.utils.data <span class="im">import</span> Dataset, DataLoader</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> TextDataFromDF(Dataset):</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, df):</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.df <span class="op">=</span> df</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__getitem__</span>(<span class="va">self</span>, index):</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.df.iloc[index, <span class="dv">5</span>], <span class="va">self</span>.df.iloc[index, <span class="dv">4</span>], <span class="va">self</span>.df.iloc[index, <span class="dv">6</span>:<span class="dv">28</span>] <span class="co">#add a third item for features</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__len__</span>(<span class="va">self</span>):</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">len</span>(<span class="va">self</span>.df)                </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Train test split</p>
+<div id="cell-18" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>df_train, df_val <span class="op">=</span> train_test_split(df,shuffle <span class="op">=</span> <span class="va">True</span>, test_size <span class="op">=</span> <span class="fl">0.2</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>train_data <span class="op">=</span> TextDataFromDF(df_train)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>val_data   <span class="op">=</span> TextDataFromDF(df_val)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Investigate an entry of our training dataset. Each entry has the lyrics, as well as the engineered features</p>
+<div id="cell-20" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>train_data[<span class="dv">3</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>('scorn give lie save blue sky turn grey know game play wind rage start build madness card draw help hear sound approach thunder cloud blacken remember warn shelter fierce wind hear echo anger fear roar thunder nightmares confusion come true ace eights fate lightning bolt swords pull gauntlet slash rain survive testify cloud blacken remember warn shelter fierce wind',
+ 2,
+ len                               59
+ dating                      0.001462
+ violence                    0.346129
+ world/life                  0.179856
+ night/time                  0.001462
+ shake the audience          0.001462
+ family/gospel               0.001462
+ romantic                    0.001462
+ communication               0.001462
+ obscene                     0.001462
+ music                       0.204009
+ movement/places             0.001462
+ light/visual perceptions    0.248077
+ family/spiritual            0.001462
+ like/girls                  0.001462
+ sadness                     0.001462
+ feelings                    0.001462
+ danceability                0.514784
+ loudness                    0.739379
+ acousticness                0.007077
+ instrumentalness            0.018623
+ valence                      0.81657
+ Name: 14065, dtype: object)</code></pre>
+</div>
+</div>
+<p>To tokenize the text, each word is assigned an integer value. This allows us to feed the lyrics into a neural netowrk.</p>
+<div id="cell-22" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>tokenizer <span class="op">=</span> get_tokenizer(<span class="st">'basic_english'</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>tokenized <span class="op">=</span> tokenizer(train_data[<span class="dv">194</span>][<span class="dv">0</span>])</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>tokenized[<span class="dv">0</span>:<span class="dv">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<pre><code>['stay',
+ 'mornin',
+ 'pass',
+ 'time',
+ 'somethin',
+ 'wrong',
+ 'denyin',
+ 'changin',
+ 'maybe',
+ 'stop']</code></pre>
+</div>
+</div>
+<p>To convert between the tokens and the word, create a yield_tokens method.</p>
+<div id="cell-24" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> yield_tokens(data_iter):</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> text, features, _ <span class="kw">in</span> data_iter:</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">yield</span> tokenizer(text)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>vocab <span class="op">=</span> build_vocab_from_iterator(yield_tokens(train_data), specials<span class="op">=</span>[<span class="st">"&lt;unk&gt;"</span>])</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>vocab.set_default_index(vocab[<span class="st">"&lt;unk&gt;"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s check out of vocabulary.</p>
+<div id="cell-26" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>vocab.get_itos()[<span class="dv">0</span>:<span class="dv">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<pre><code>['&lt;unk&gt;',
+ 'know',
+ 'like',
+ 'time',
+ 'come',
+ 'go',
+ 'feel',
+ 'away',
+ 'heart',
+ 'yeah']</code></pre>
+</div>
+</div>
+<p>How does this look as tokens? We see the words as their integer representation.</p>
+<div id="cell-28" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>vocab(tokenized)[<span class="dv">0</span>:<span class="dv">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<pre><code>[46, 791, 191, 3, 388, 91, 8594, 3165, 173, 70]</code></pre>
+</div>
+</div>
+<p>Make a text pipeline to preprocess text data</p>
+<div id="cell-30" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>max_len <span class="op">=</span> <span class="dv">30</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>num_tokens <span class="op">=</span> <span class="bu">len</span>(vocab.get_itos())</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> text_pipeline(x):</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># tokenize input string x</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> vocab(tokenizer(x))</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create a zero tensor of length max_len</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> torch.zeros(max_len, dtype<span class="op">=</span>torch.int64) <span class="op">+</span> num_tokens</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># trim tokens to the first max_len tokens</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(tokens) <span class="op">&gt;</span> max_len:</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>        tokens <span class="op">=</span> tokens[<span class="dv">0</span>:max_len]</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># replace first len(tokens) elements of y with tokenized input</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    y[<span class="dv">0</span>:<span class="bu">len</span>(tokens)] <span class="op">=</span> torch.tensor(tokens,dtype<span class="op">=</span>torch.int64)</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> y</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>label_pipeline <span class="op">=</span> <span class="kw">lambda</span> x: <span class="bu">int</span>(x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Method collate_batch processes a batch of data</p>
+<div id="cell-32" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> collate_batch(batch):</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    label_list, text_list, feature_list <span class="op">=</span> [], [], []</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (_text, _label, _features) <span class="kw">in</span> batch:</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>         </span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>         <span class="co"># featire pipeline</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>         feature_list.append(torch.tensor(_features))</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>        <span class="co"># add label to list</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>         label_list.append(label_pipeline(_label))</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>         <span class="co"># add text (as sequence of integers) to list</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>         processed_text <span class="op">=</span> text_pipeline(_text)</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>         text_list.append(processed_text)</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>    feature_list <span class="op">=</span> torch.stack(feature_list)</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>    label_list <span class="op">=</span> torch.tensor(label_list, dtype<span class="op">=</span>torch.int64)</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>    text_list <span class="op">=</span> torch.stack(text_list)</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> text_list, label_list, feature_list</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Create two instances of data loaders for train and test set.</p>
+<div id="cell-34" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>train_loader <span class="op">=</span> DataLoader(train_data, batch_size<span class="op">=</span><span class="dv">8</span>, shuffle<span class="op">=</span><span class="va">True</span>, collate_fn<span class="op">=</span>collate_batch)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>val_loader <span class="op">=</span> DataLoader(val_data, batch_size<span class="op">=</span><span class="dv">8</span>, shuffle<span class="op">=</span><span class="va">True</span>, collate_fn<span class="op">=</span>collate_batch)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we can build our model! First, embed the text, then utilize dropout to prevent neuron dependency, and finish with a fully-connected linear layer.</p>
+<div id="cell-36" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch <span class="im">import</span> nn</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn.functional <span class="im">as</span> F</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> TextClassificationModel(nn.Module):</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, vocab_size, embedding_dim, max_len, num_class):</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.embedding <span class="op">=</span> nn.Embedding(vocab_size<span class="op">+</span><span class="dv">1</span>, embedding_dim)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.dropout <span class="op">=</span> nn.Dropout(p<span class="op">=</span><span class="fl">0.2</span>)</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.fc   <span class="op">=</span> nn.Linear(embedding_dim, num_class)  </span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.embedding(x)</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.dropout(x)</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> x.mean(axis<span class="op">=</span><span class="dv">1</span>)  </span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.fc(x)</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> x</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Set parameters for model training</p>
+<div id="cell-38" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>vocab_size <span class="op">=</span> <span class="bu">len</span>(vocab)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>embedding_dim <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>max_len <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>num_class <span class="op">=</span> <span class="dv">7</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>lyrics_model <span class="op">=</span> TextClassificationModel(vocab_size, embedding_dim, max_len, num_class)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>optimizer <span class="op">=</span> torch.optim.Adam(lyrics_model.parameters(), lr<span class="op">=</span><span class="fl">.1</span>)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>loss_fn <span class="op">=</span> torch.nn.CrossEntropyLoss()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Here is the training loop and evaluation method we’ll use for each neural network.</p>
+<div id="cell-40" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> train(model, dataloader, lyrics, engineering):</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># keep track of time for each epoch</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    epoch_start_time <span class="op">=</span> time.time()</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    log_interval <span class="op">=</span> <span class="dv">300</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    start_time <span class="op">=</span> time.time()</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># for measuring accuracy</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    total_acc, total_count <span class="op">=</span> <span class="dv">0</span>, <span class="dv">0</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> idx, (text, label, features) <span class="kw">in</span> <span class="bu">enumerate</span>(dataloader):</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>        <span class="co"># zero gradients</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>        optimizer.zero_grad()</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>        <span class="co"># prediction on batch, based on specified features </span></span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>        predicted_label <span class="op">=</span> <span class="st">''</span></span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span>(engineering <span class="kw">and</span> <span class="kw">not</span> lyrics):</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>            predicted_label <span class="op">=</span> model(features)</span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span>(lyrics <span class="kw">and</span> <span class="kw">not</span> engineering):</span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>            predicted_label <span class="op">=</span> model(text)</span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span>(lyrics <span class="kw">and</span> engineering):</span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>            predicted_label <span class="op">=</span> model(text, features)</span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>        <span class="co"># evaluate loss on prediction</span></span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>        loss <span class="op">=</span> loss_fn(predicted_label, label)</span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>        <span class="co"># compute gradient</span></span>
+<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>        loss.backward()</span>
+<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a>        <span class="co"># take an optimization step</span></span>
+<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a>        optimizer.step()</span>
+<span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-34"><a href="#cb23-34" aria-hidden="true" tabindex="-1"></a>        <span class="co"># for printing accuracy</span></span>
+<span id="cb23-35"><a href="#cb23-35" aria-hidden="true" tabindex="-1"></a>        total_acc   <span class="op">+=</span> (predicted_label.argmax(<span class="dv">1</span>) <span class="op">==</span> label).<span class="bu">sum</span>().item()</span>
+<span id="cb23-36"><a href="#cb23-36" aria-hidden="true" tabindex="-1"></a>        total_count <span class="op">+=</span> label.size(<span class="dv">0</span>)</span>
+<span id="cb23-37"><a href="#cb23-37" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb23-38"><a href="#cb23-38" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'| epoch </span><span class="sc">{</span>epoch<span class="sc">:3d}</span><span class="ss"> | train accuracy </span><span class="sc">{</span>total_acc<span class="op">/</span>total_count<span class="sc">:8.3f}</span><span class="ss"> | time: </span><span class="sc">{</span>time<span class="sc">.</span>time() <span class="op">-</span> epoch_start_time<span class="sc">:5.2f}</span><span class="ss">s'</span>)</span>
+<span id="cb23-39"><a href="#cb23-39" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb23-40"><a href="#cb23-40" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> evaluate(model, dataloader, lyrics<span class="op">=</span><span class="va">True</span>, engineering<span class="op">=</span><span class="va">True</span>):</span>
+<span id="cb23-41"><a href="#cb23-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-42"><a href="#cb23-42" aria-hidden="true" tabindex="-1"></a>    <span class="co"># for determining accuracy</span></span>
+<span id="cb23-43"><a href="#cb23-43" aria-hidden="true" tabindex="-1"></a>    total_acc, total_count <span class="op">=</span> <span class="dv">0</span>, <span class="dv">0</span></span>
+<span id="cb23-44"><a href="#cb23-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-45"><a href="#cb23-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb23-46"><a href="#cb23-46" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> idx, (text, label, features) <span class="kw">in</span> <span class="bu">enumerate</span>(dataloader):</span>
+<span id="cb23-47"><a href="#cb23-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-48"><a href="#cb23-48" aria-hidden="true" tabindex="-1"></a>            <span class="co"># form prediction on batch</span></span>
+<span id="cb23-49"><a href="#cb23-49" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span>(engineering <span class="kw">and</span> <span class="kw">not</span> lyrics):</span>
+<span id="cb23-50"><a href="#cb23-50" aria-hidden="true" tabindex="-1"></a>                predicted_label <span class="op">=</span> model(features)</span>
+<span id="cb23-51"><a href="#cb23-51" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span>(lyrics <span class="kw">and</span> <span class="kw">not</span> engineering):</span>
+<span id="cb23-52"><a href="#cb23-52" aria-hidden="true" tabindex="-1"></a>                predicted_label <span class="op">=</span> model(text)</span>
+<span id="cb23-53"><a href="#cb23-53" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span>(lyrics <span class="kw">and</span> engineering):</span>
+<span id="cb23-54"><a href="#cb23-54" aria-hidden="true" tabindex="-1"></a>                predicted_label <span class="op">=</span> model(text, features)</span>
+<span id="cb23-55"><a href="#cb23-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-56"><a href="#cb23-56" aria-hidden="true" tabindex="-1"></a>            <span class="co"># compute accuracy</span></span>
+<span id="cb23-57"><a href="#cb23-57" aria-hidden="true" tabindex="-1"></a>            total_acc <span class="op">+=</span> (predicted_label.argmax(<span class="dv">1</span>) <span class="op">==</span> label).<span class="bu">sum</span>().item()</span>
+<span id="cb23-58"><a href="#cb23-58" aria-hidden="true" tabindex="-1"></a>            total_count <span class="op">+=</span> label.size(<span class="dv">0</span>)</span>
+<span id="cb23-59"><a href="#cb23-59" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb23-60"><a href="#cb23-60" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> total_acc<span class="op">/</span>total_count</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we can finally train the model. In just 5 epochs we receive 56% training set accuracy.</p>
+<div id="cell-42" class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>EPOCHS <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, EPOCHS <span class="op">+</span> <span class="dv">1</span>):</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    train(lyrics_model, train_loader, lyrics <span class="op">=</span> <span class="va">True</span>, engineering <span class="op">=</span> <span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/var/folders/nd/3yjvm85j3rq1vhh53yn6cy0r0000gn/T/ipykernel_21093/2186017985.py:6: FutureWarning: Series.__getitem__ treating keys as positions is deprecated. In a future version, integer keys will always be treated as labels (consistent with DataFrame behavior). To access a value by position, use `ser.iloc[pos]`
+  feature_list.append(torch.tensor(_features))</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>| epoch   1 | train accuracy    0.284 | time:  9.81s
+| epoch   2 | train accuracy    0.385 | time: 16.25s
+| epoch   3 | train accuracy    0.466 | time: 16.35s
+| epoch   4 | train accuracy    0.527 | time: 17.27s
+| epoch   5 | train accuracy    0.564 | time: 16.79s</code></pre>
+</div>
+</div>
+<p>Evaluate our model on a testing dataset. 32% validation accuracy is better than the baseline!</p>
+<div id="cell-44" class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>evaluate(lyrics_model, val_loader, lyrics <span class="op">=</span> <span class="va">True</span>, engineering <span class="op">=</span> <span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/var/folders/nd/3yjvm85j3rq1vhh53yn6cy0r0000gn/T/ipykernel_21093/2186017985.py:6: FutureWarning: Series.__getitem__ treating keys as positions is deprecated. In a future version, integer keys will always be treated as labels (consistent with DataFrame behavior). To access a value by position, use `ser.iloc[pos]`
+  feature_list.append(torch.tensor(_features))</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="23">
+<pre><code>0.3221145374449339</code></pre>
+</div>
+</div>
+</section>
+<section id="neural-network-2-engineered-features" class="level3">
+<h3 class="anchored" data-anchor-id="neural-network-2-engineered-features">Neural Network 2: Engineered Features</h3>
+<p>We were able to effectively classify song genre using just the lyrics. Can we do the same using engineered features – descriptors of topics relavent to the songs?</p>
+<div id="cell-47" class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>engineered_features <span class="op">=</span> [<span class="st">'genre'</span>, <span class="st">'dating'</span>, <span class="st">'violence'</span>, <span class="st">'world/life'</span>, <span class="st">'night/time'</span>,<span class="st">'shake the audience'</span>,<span class="st">'family/gospel'</span>, <span class="st">'romantic'</span>, <span class="st">'communication'</span>,<span class="st">'obscene'</span>, <span class="st">'music'</span>, <span class="st">'movement/places'</span>, <span class="st">'light/visual perceptions'</span>,<span class="st">'family/spiritual'</span>, <span class="st">'like/girls'</span>, <span class="st">'sadness'</span>, <span class="st">'feelings'</span>, <span class="st">'danceability'</span>,<span class="st">'loudness'</span>, <span class="st">'acousticness'</span>, <span class="st">'instrumentalness'</span>, <span class="st">'valence'</span>, <span class="st">'energy'</span>]      </span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="bu">len</span>(engineered_features)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="24">
+<pre><code>23</code></pre>
+</div>
+</div>
+<div id="cell-48" class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># train test split</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>df_train, df_val <span class="op">=</span> train_test_split(df,shuffle <span class="op">=</span> <span class="va">True</span>, test_size <span class="op">=</span> <span class="fl">0.2</span>)</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>train_data <span class="op">=</span> TextDataFromDF(df_train)</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>val_data   <span class="op">=</span> TextDataFromDF(df_val)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Our Engineering Classification Model utilizes sequences of Linear, ReLU, and Dropout layers.</p>
+<div id="cell-50" class="cell" data-execution_count="44">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch <span class="im">import</span> nn</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> EngineeringClassificationModel(nn.Module):</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, input_size, num_class):</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.model <span class="op">=</span> nn.Sequential( </span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>            nn.Linear(input_size, <span class="dv">128</span>), </span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>            nn.ReLU(), </span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>            nn.Dropout(<span class="fl">0.2</span>),</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>            nn.Linear(<span class="dv">128</span>, <span class="dv">64</span>),</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>            nn.ReLU(), </span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>            nn.Dropout(<span class="fl">0.2</span>),</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>            nn.Linear(<span class="dv">64</span>, <span class="dv">32</span>), </span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>            nn.ReLU(), </span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>            nn.Linear(<span class="dv">32</span>, <span class="dv">16</span>), </span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>            nn.ReLU(), </span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>            nn.Linear(<span class="dv">16</span>, num_class), </span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>            nn.Softmax(dim<span class="op">=</span><span class="dv">1</span>) )</span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> x.<span class="bu">float</span>()</span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> torch.flatten(x, <span class="dv">1</span>)</span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.model(x)</span>
+<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> x</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-51" class="cell" data-execution_count="45">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>train_loader <span class="op">=</span> DataLoader(train_data, batch_size<span class="op">=</span><span class="dv">8</span>, shuffle<span class="op">=</span><span class="va">True</span>, collate_fn<span class="op">=</span>collate_batch)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>val_loader <span class="op">=</span> DataLoader(val_data, batch_size<span class="op">=</span><span class="dv">8</span>, shuffle<span class="op">=</span><span class="va">True</span>, collate_fn<span class="op">=</span>collate_batch)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-52" class="cell" data-execution_count="46">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>input_size <span class="op">=</span> <span class="dv">22</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>num_classes <span class="op">=</span> <span class="dv">7</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>engineer_model <span class="op">=</span> EngineeringClassificationModel(input_size, num_classes)</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>optimizer <span class="op">=</span> torch.optim.Adam(engineer_model.parameters(), lr<span class="op">=</span><span class="fl">.00001</span>)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>loss_fn <span class="op">=</span> torch.nn.CrossEntropyLoss()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s train and test.</p>
+<div id="cell-54" class="cell" data-execution_count="47">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>EPOCHS <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, EPOCHS <span class="op">+</span> <span class="dv">1</span>):</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    train(engineer_model, train_loader, lyrics<span class="op">=</span><span class="va">False</span>, engineering<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/var/folders/nd/3yjvm85j3rq1vhh53yn6cy0r0000gn/T/ipykernel_21093/2186017985.py:6: FutureWarning:
+
+Series.__getitem__ treating keys as positions is deprecated. In a future version, integer keys will always be treated as labels (consistent with DataFrame behavior). To access a value by position, use `ser.iloc[pos]`
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>| epoch   1 | train accuracy    0.235 | time:  9.59s
+| epoch   2 | train accuracy    0.248 | time: 15.03s
+| epoch   3 | train accuracy    0.248 | time: 15.05s
+| epoch   4 | train accuracy    0.248 | time: 15.06s
+| epoch   5 | train accuracy    0.248 | time: 15.07s
+| epoch   6 | train accuracy    0.248 | time: 16.55s
+| epoch   7 | train accuracy    0.248 | time: 16.54s
+| epoch   8 | train accuracy    0.248 | time: 17.64s
+| epoch   9 | train accuracy    0.248 | time: 15.33s
+| epoch  10 | train accuracy    0.248 | time: 16.13s</code></pre>
+</div>
+</div>
+<div id="cell-55" class="cell" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>evaluate(engineer_model, val_loader, lyrics <span class="op">=</span> <span class="va">False</span>, engineering <span class="op">=</span> <span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/var/folders/nd/3yjvm85j3rq1vhh53yn6cy0r0000gn/T/ipykernel_21093/2186017985.py:6: FutureWarning: Series.__getitem__ treating keys as positions is deprecated. In a future version, integer keys will always be treated as labels (consistent with DataFrame behavior). To access a value by position, use `ser.iloc[pos]`
+  feature_list.append(torch.tensor(_features))</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="30">
+<pre><code>0.24916299559471367</code></pre>
+</div>
+</div>
+<p>This is only slightly better than baseline. Perhaps lyrics are better and predicting genre, or the model I designedis not strong enough for this task.</p>
+</section>
+<section id="neural-network-3-lyrics-and-engineered-featuers" class="level3">
+<h3 class="anchored" data-anchor-id="neural-network-3-lyrics-and-engineered-featuers">Neural Network 3: Lyrics and Engineered Featuers</h3>
+<p>Can we get high accuracy by combining our previous two neural networks – using both lyrics and engineered features to classify song genre?</p>
+<div id="cell-59" class="cell" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CombinedModel(nn.Module):</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, vocab_size, embedding_dim, num_features, num_classes):</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>        <span class="co"># separate data into text features and engineered features</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Text Pipeline</span></span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.embedding <span class="op">=</span> nn.Embedding(vocab_size<span class="op">+</span><span class="dv">1</span>, embedding_dim)</span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.text_fc <span class="op">=</span> nn.Linear(embedding_dim, <span class="dv">128</span>)</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Engineered Features Pipeline</span></span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.engineered_fc <span class="op">=</span> nn.Linear(num_features, <span class="dv">128</span>)</span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Combined Layers</span></span>
+<span id="cb42-16"><a href="#cb42-16" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.combine_fc <span class="op">=</span> nn.Linear(<span class="dv">12928</span>, <span class="dv">64</span>)</span>
+<span id="cb42-17"><a href="#cb42-17" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.output_fc <span class="op">=</span> nn.Linear(<span class="dv">64</span>, num_classes)</span>
+<span id="cb42-18"><a href="#cb42-18" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.softmax <span class="op">=</span> nn.Softmax(dim<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb42-19"><a href="#cb42-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-20"><a href="#cb42-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, text, engineer):</span>
+<span id="cb42-21"><a href="#cb42-21" aria-hidden="true" tabindex="-1"></a>        <span class="co"># separate x into x_1 (text features) and x_2 (engineered features)</span></span>
+<span id="cb42-22"><a href="#cb42-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-23"><a href="#cb42-23" aria-hidden="true" tabindex="-1"></a>        <span class="co"># text pipeline: try embedding! </span></span>
+<span id="cb42-24"><a href="#cb42-24" aria-hidden="true" tabindex="-1"></a>        text_embed <span class="op">=</span> <span class="va">self</span>.embedding(text)</span>
+<span id="cb42-25"><a href="#cb42-25" aria-hidden="true" tabindex="-1"></a>        x_1 <span class="op">=</span> <span class="va">self</span>.text_fc(text_embed)</span>
+<span id="cb42-26"><a href="#cb42-26" aria-hidden="true" tabindex="-1"></a>        x_1 <span class="op">=</span> torch.flatten(x_1, <span class="dv">1</span>)</span>
+<span id="cb42-27"><a href="#cb42-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-28"><a href="#cb42-28" aria-hidden="true" tabindex="-1"></a>        <span class="co"># engineered features: fully-connected Linear layers are fine</span></span>
+<span id="cb42-29"><a href="#cb42-29" aria-hidden="true" tabindex="-1"></a>        engineer <span class="op">=</span> engineer.<span class="bu">float</span>()</span>
+<span id="cb42-30"><a href="#cb42-30" aria-hidden="true" tabindex="-1"></a>        x_2 <span class="op">=</span> <span class="va">self</span>.engineered_fc(engineer)</span>
+<span id="cb42-31"><a href="#cb42-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-32"><a href="#cb42-32" aria-hidden="true" tabindex="-1"></a>        <span class="co"># ensure that both x_1 and x_2 are 2-d tensors, flattening if necessary</span></span>
+<span id="cb42-33"><a href="#cb42-33" aria-hidden="true" tabindex="-1"></a>        combined <span class="op">=</span> torch.cat((x_1, x_2), dim<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb42-34"><a href="#cb42-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-35"><a href="#cb42-35" aria-hidden="true" tabindex="-1"></a>        <span class="co"># pass x through a couple more fully-connected layers and return output</span></span>
+<span id="cb42-36"><a href="#cb42-36" aria-hidden="true" tabindex="-1"></a>        combined <span class="op">=</span> <span class="va">self</span>.combine_fc(combined)</span>
+<span id="cb42-37"><a href="#cb42-37" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> <span class="va">self</span>.output_fc(combined)</span>
+<span id="cb42-38"><a href="#cb42-38" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> <span class="va">self</span>.softmax(output)</span>
+<span id="cb42-39"><a href="#cb42-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-40"><a href="#cb42-40" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> output</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-60" class="cell" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>train_loader <span class="op">=</span> DataLoader(train_data, batch_size<span class="op">=</span><span class="dv">8</span>, shuffle<span class="op">=</span><span class="va">True</span>, collate_fn<span class="op">=</span>collate_batch)</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>val_loader <span class="op">=</span> DataLoader(val_data, batch_size<span class="op">=</span><span class="dv">8</span>, shuffle<span class="op">=</span><span class="va">True</span>, collate_fn<span class="op">=</span>collate_batch)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-61" class="cell" data-execution_count="33">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>vocab_size <span class="op">=</span> <span class="bu">len</span>(vocab)</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>embedding_dim <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>num_features <span class="op">=</span> <span class="dv">22</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>num_classes <span class="op">=</span> <span class="dv">7</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>combined_model <span class="op">=</span> CombinedModel(vocab_size, embedding_dim, num_features, num_classes)</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>optimizer <span class="op">=</span> torch.optim.Adam(combined_model.parameters(), lr<span class="op">=</span><span class="fl">0.0001</span>)</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>loss_fn <span class="op">=</span> torch.nn.CrossEntropyLoss()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-62" class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>EPOCHS <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, EPOCHS <span class="op">+</span> <span class="dv">1</span>):</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    train(combined_model, train_loader, lyrics<span class="op">=</span><span class="va">True</span>, engineering<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/var/folders/nd/3yjvm85j3rq1vhh53yn6cy0r0000gn/T/ipykernel_21093/2186017985.py:6: FutureWarning: Series.__getitem__ treating keys as positions is deprecated. In a future version, integer keys will always be treated as labels (consistent with DataFrame behavior). To access a value by position, use `ser.iloc[pos]`
+  feature_list.append(torch.tensor(_features))</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>| epoch   1 | train accuracy    0.246 | time: 29.97s
+| epoch   2 | train accuracy    0.252 | time: 31.29s
+| epoch   3 | train accuracy    0.257 | time: 30.10s
+| epoch   4 | train accuracy    0.263 | time: 30.53s
+| epoch   5 | train accuracy    0.264 | time: 30.80s</code></pre>
+</div>
+</div>
+<div id="cell-63" class="cell" data-execution_count="35">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>evaluate(combined_model, val_loader, lyrics <span class="op">=</span> <span class="va">True</span>, engineering <span class="op">=</span> <span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/var/folders/nd/3yjvm85j3rq1vhh53yn6cy0r0000gn/T/ipykernel_21093/2186017985.py:6: FutureWarning: Series.__getitem__ treating keys as positions is deprecated. In a future version, integer keys will always be treated as labels (consistent with DataFrame behavior). To access a value by position, use `ser.iloc[pos]`
+  feature_list.append(torch.tensor(_features))</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="35">
+<pre><code>0.2526872246696035</code></pre>
+</div>
+</div>
+<p>Once again, slighly better than baseline!</p>
+</section>
+<section id="visualize-word-embedding" class="level3">
+<h3 class="anchored" data-anchor-id="visualize-word-embedding">Visualize Word Embedding</h3>
+<p>Text embedding models blindly learn associations between words used in the input text. It would be unsurprising to see this occur in songs, especially considering the tendency for music, especially hip-hop and country, to contain racist and sexist undertones.</p>
+<div id="cell-67" class="cell" data-execution_count="36">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># for embedding visualization later</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.express <span class="im">as</span> px </span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.io <span class="im">as</span> pio</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-68" class="cell" data-execution_count="37">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>embedding_matrix <span class="op">=</span> combined_model.embedding.cpu().weight.data.numpy()</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>tokens <span class="op">=</span> vocab.get_itos()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s utilize PCA to reduce the dimensionality of our data</p>
+<div id="cell-70" class="cell" data-execution_count="38">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>pca <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> pca.fit_transform(embedding_matrix)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-71" class="cell" data-execution_count="39">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>tokens <span class="op">=</span> vocab.get_itos()</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>tokens.append(<span class="st">" "</span>)</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>embedding_df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">'word'</span> : tokens, </span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">'x0'</span>   : weights[:,<span class="dv">0</span>],</span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">'x1'</span>   : weights[:,<span class="dv">1</span>]</span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>embedding_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="39">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">word</th>
+<th data-quarto-table-cell-role="th">x0</th>
+<th data-quarto-table-cell-role="th">x1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>&lt;unk&gt;</td>
+<td>-0.241795</td>
+<td>0.101041</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>know</td>
+<td>1.901600</td>
+<td>0.761639</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>like</td>
+<td>0.061012</td>
+<td>-0.139691</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>time</td>
+<td>-2.086986</td>
+<td>-0.204237</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>come</td>
+<td>-0.004097</td>
+<td>-0.908995</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">45659</td>
+<td>트램펄린</td>
+<td>-0.433597</td>
+<td>0.306044</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">45660</td>
+<td>한번쯤은</td>
+<td>0.411126</td>
+<td>-0.498122</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">45661</td>
+<td>함께라는</td>
+<td>-1.094337</td>
+<td>-1.840321</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">45662</td>
+<td>ﬁnished</td>
+<td>-1.300753</td>
+<td>1.882751</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">45663</td>
+<td></td>
+<td>-0.574790</td>
+<td>0.651395</td>
+</tr>
+</tbody>
+</table>
+
+<p>45664 rows × 3 columns</p>
+</div>
+</div>
+</div>
+<div id="cell-72" class="cell" data-execution_count="40">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> px.scatter(embedding_df, </span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>                 x <span class="op">=</span> <span class="st">"x0"</span>, </span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>                 y <span class="op">=</span> <span class="st">"x1"</span>, </span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>                 size <span class="op">=</span> <span class="bu">list</span>(np.ones(<span class="bu">len</span>(embedding_df))),</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>                 size_max <span class="op">=</span> <span class="dv">10</span>,</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>                 hover_name <span class="op">=</span> <span class="st">"word"</span>)</span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>fig.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>Unable to display output for mime type(s): application/vnd.plotly.v1+json</code></pre>
+</div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="pca.jpg" class="img-fluid figure-img"></p>
+<figcaption>PCA graph</figcaption>
+</figure>
+</div>
+<p>It’s a bit hard to make sense of, seeing that we are classifying into 7 categories. However, some of the “outlier” words in our PCA plot seem to be associated with specific genres.</p>
+<div id="cell-75" class="cell" data-execution_count="41">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>feminine <span class="op">=</span> [<span class="st">"she"</span>, <span class="st">"her"</span>, <span class="st">"woman"</span>]</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>masculine <span class="op">=</span> [<span class="st">"he"</span>, <span class="st">"him"</span>, <span class="st">"man"</span>]</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>highlight_1 <span class="op">=</span> [<span class="st">"strong"</span>, <span class="st">"powerful"</span>, <span class="st">"smart"</span>,     <span class="st">"thinking"</span>, <span class="st">"brave"</span>, <span class="st">"muscle"</span>]</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>highlight_2 <span class="op">=</span> [<span class="st">"hot"</span>,    <span class="st">"sexy"</span>,     <span class="st">"beautiful"</span>, <span class="st">"shopping"</span>, <span class="st">"children"</span>, <span class="st">"thin"</span>]</span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gender_mapper(x):</span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> x <span class="kw">in</span> feminine:</span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">1</span></span>
+<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> x <span class="kw">in</span> masculine:</span>
+<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">4</span></span>
+<span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> x <span class="kw">in</span> highlight_1:</span>
+<span id="cb57-13"><a href="#cb57-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">3</span></span>
+<span id="cb57-14"><a href="#cb57-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> x <span class="kw">in</span> highlight_2:</span>
+<span id="cb57-15"><a href="#cb57-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">2</span></span>
+<span id="cb57-16"><a href="#cb57-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb57-17"><a href="#cb57-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">0</span></span>
+<span id="cb57-18"><a href="#cb57-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-19"><a href="#cb57-19" aria-hidden="true" tabindex="-1"></a>embedding_df[<span class="st">"highlight"</span>] <span class="op">=</span> embedding_df[<span class="st">"word"</span>].<span class="bu">apply</span>(gender_mapper)</span>
+<span id="cb57-20"><a href="#cb57-20" aria-hidden="true" tabindex="-1"></a>embedding_df[<span class="st">"size"</span>]      <span class="op">=</span> np.array(<span class="fl">1.0</span> <span class="op">+</span> <span class="dv">50</span><span class="op">*</span>(embedding_df[<span class="st">"highlight"</span>] <span class="op">&gt;</span> <span class="dv">0</span>))</span>
+<span id="cb57-21"><a href="#cb57-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-22"><a href="#cb57-22" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb57-23"><a href="#cb57-23" aria-hidden="true" tabindex="-1"></a>sub_df <span class="op">=</span> embedding_df[embedding_df[<span class="st">"highlight"</span>] <span class="op">&gt;</span> <span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-76" class="cell" data-execution_count="42">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.express <span class="im">as</span> px </span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> px.scatter(sub_df, </span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>                 x <span class="op">=</span> <span class="st">"x0"</span>, </span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>                 y <span class="op">=</span> <span class="st">"x1"</span>, </span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>                 color <span class="op">=</span> <span class="st">"highlight"</span>,</span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>                 size <span class="op">=</span> <span class="bu">list</span>(sub_df[<span class="st">"size"</span>]),</span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>                 size_max <span class="op">=</span> <span class="dv">10</span>,</span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>                 hover_name <span class="op">=</span> <span class="st">"word"</span>, </span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>                 text <span class="op">=</span> <span class="st">"word"</span>)</span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>fig.update_traces(textposition<span class="op">=</span><span class="st">'top center'</span>)</span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a>fig.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>Unable to display output for mime type(s): application/vnd.plotly.v1+json</code></pre>
+</div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="word_embeddings.jpg" class="img-fluid figure-img"></p>
+<figcaption>word embedding image</figcaption>
+</figure>
+</div>
+<p>I’m pleased to see not too much association between stereotypically feminine traits and unequivocally feminine words, and same with masculine traits and unequivocally masculine words.</p>
+</section>
+<section id="conclusion" class="level3">
+<h3 class="anchored" data-anchor-id="conclusion">Conclusion</h3>
+<p>In this blog post, I learned to design neural networks to handle different types of inputs: text input (lyrics), and engineered features. Utilizing machine learning, I was able to create classification models for 7 categories, performing better than the baseline. Finally, I analyzed the word embeddings learned by my model, considering how these came to be.</p>
+<p>Neural network models are ubiquitous – perhaps the most commonly used machine learning algorithm. Every time I use fingerprint ID on my phone, or use auto-complete, I’m utilizing neural networks. It’s exciting to begin to understand how these work, and apply them in an interesting way – to music!</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
