@@ -8,7 +8,7 @@
 
 <meta name="author" content="Liz Rightmire">
 <meta name="dcterms.date" content="2024-05-16">
-<meta name="description" content="My final project on skin cancer image classification">
+<meta name="description" content="Skin Cancer Image Classification">
 
 <title>Liz’s CSCI 0451 Blog - Final Project</title>
 <style>
@@ -137,7 +137,7 @@ background-size: cover;
       <h1 class="title">Final Project</h1>
                   <div>
         <div class="description">
-          My final project on skin cancer image classification
+          Skin Cancer Image Classification
         </div>
       </div>
                 </div>
@@ -175,10 +175,10 @@ background-size: cover;
 
 
 
-<section id="project-blog-post" class="level1">
-<h1>Project Blog Post</h1>
-<section id="on-skin-cancer-identification-using-cnn-and-logistic-regresison-models" class="level3">
-<h3 class="anchored" data-anchor-id="on-skin-cancer-identification-using-cnn-and-logistic-regresison-models">On skin cancer identification using CNN and Logistic Regresison models</h3>
+<section id="final-project" class="level1">
+<h1>Final Project</h1>
+<section id="skin-cancer-classification-using-cnn-and-logistic-regresison-models" class="level3">
+<h3 class="anchored" data-anchor-id="skin-cancer-classification-using-cnn-and-logistic-regresison-models">Skin Cancer Classification using CNN and Logistic Regresison Models</h3>
 </section>
 <section id="abstract" class="level3">
 <h3 class="anchored" data-anchor-id="abstract">Abstract</h3>
@@ -214,13 +214,13 @@ background-size: cover;
 <section id="figure-1-frequency-of-skin-lesion-categories" class="level4">
 <h4 class="anchored" data-anchor-id="figure-1-frequency-of-skin-lesion-categories">Figure 1: Frequency of Skin Lesion Categories</h4>
 <p><img src="images/SkinCancer_TypeFrequency.png" title="Skin Lesion Categories" class="img-fluid"></p>
-<p>This figure shows the frequency of diagnoses present in the data set. Clearly, the nv dx dominates, bringing up questions about how well a model trained on this data will classify any non-nv diagnoses.</p>
+<p>This figure shows the frequency of diagnoses present in the data set. Clearly, the nv diagnosis dominates, bringing up questions about how well a model trained on this data will classify any non-nv diagnoses.</p>
 <section id="approach" class="level5">
 <h5 class="anchored" data-anchor-id="approach">Approach</h5>
 <p>The features of our data were images, which we reduced to a size 32x32 pixels to reduce the strain on our computers. We preprocessed each image by converting it to a 32x32x3 numpy array, where the third channel represents the RGB values of the pixels.</p>
 <p>Here is an example image, with the beginning of its numpy array representation: <img src="images/imagepreprocessing.png" class="img-fluid" alt="image preprocessing"></p>
-<p>The goal was to predict the column of the metadata table labeled dx, the diagnosis corresponding to each lesion. We concatenated the dx column of the metadata onto the dataframe containing the image representations. We subset our data into two sets, 80% for the training set and 20% for the test set.</p>
-<p>To artificially increase the size and diversity of our training dataset, we performed various transformations (such as flips, rotations, and image cropping) to the original images – a technique known as Data Augmentation. We also eliminated half of the observations from the nv class to address the unbalanced class sizes. You may notice the example below is a bit blurry, that’s because the images are now 32x32 pixel representations.</p>
+<p>The goal was to predict the column of the metadata table labeled dx, the diagnosis corresponding to each lesion. We concatenated the dx column of the metadata onto the dataframe containing the numpy image representations. We subset our data into two sets: 80% for training and 20% for testing.</p>
+<p>To artificially increase the size and diversity of our training dataset, we performed various transformations (such as flips, rotations, and image cropping) to the original images – a technique known as Data Augmentation. You may notice the example below is a bit blurry, that’s because the images are now 32x32 pixel representations.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="images/DataAugmentation.png" class="img-fluid figure-img"></p>
@@ -282,13 +282,9 @@ background-size: cover;
 <section id="concluding-discussion" class="level3">
 <h3 class="anchored" data-anchor-id="concluding-discussion">Concluding Discussion</h3>
 <p>We were able to achieve a 75% accuracy rate, which is a huge improvement over the baseline accuracy of 58%.</p>
-<p>While we most certainly did not cure cancer, we met many of our exploration and implementation goals. We gained experience with image processing, data augmentation, class weights, convolutional neural networks, and transfer learning. Our final model has some predictive power, and we were able to explore the HAM10000 dataset in depth.</p>
+<p>While we most certainly did not cure cancer, we met many of our exploration and implementation goals. We gained experience with image processing, data augmentation, managing unbalanced classes, convolutional neural networks, and transfer learning. Our final model has some predictive power, and we were able to explore the HAM10000 dataset in depth.</p>
 <p>Our results were within the range of similarly experienced projects using the HAM10000 dataset. However, it is worth noting that one group of researchers was able to achieve an accuracy of 84.3% with an EfficientNet model, which is a more advanced model than the ones we used (Tajerian et al., 2023). Another group achieved an accuracy of 96.15 using Google’s ViT patch-32 model (Himel et al., 2024). Seeing as these groups of researchers had PhDs and we have yet to obtain a Bachelor’s degree, we are content with our results.</p>
 <p>If we’d had more time and resources to continue this project, we likely would have explored some of the more advanced models mentioned above, as well as attempted to replicate some of their results. We were also limited by the size of the dataset, which, is relatively small for a machine learning project but is quite large to be processed on a personal laptop. We had to reduce the sizes of the images to achieve a realistic runtime! We would have liked to further explore some of the ethical implications of our model, such as the potential for racial bias in the data and the potential for our model to be used as a diagnostic tool in underserved communities.</p>
-</section>
-<section id="group-contribution-statement" class="level3">
-<h3 class="anchored" data-anchor-id="group-contribution-statement">Group Contribution Statement</h3>
-<p>Our group was formed because the topics proposed by Liz and Zoe had similarities regarding classification in the health space. We decided to split the workload so that Liz and Zoe work primarily on the building the convolutional neural network, while Julia and Breanna worked on improving the logistic regression models. For the final blog post, Breanna wrote the abstract, introduction and group contribution statement. Julia summarized the concluding thoughts, Liz wrote the values statement and worked on the results section jointly with Zoe, and Zoe championed the data/methods section.</p>
 </section>
 <section id="personal-reflection" class="level3">
 <h3 class="anchored" data-anchor-id="personal-reflection">Personal Reflection</h3>
